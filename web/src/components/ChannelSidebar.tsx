@@ -1,0 +1,185 @@
+import { useState } from 'react';
+import { Hash, ChevronDown, ChevronRight, Plus, Bot, User } from 'lucide-react';
+import { useApp } from '../store/AppContext';
+
+function SectionHeader({ title, count, collapsed, onToggle, onAdd }: {
+  title: string; count?: number; collapsed: boolean; onToggle: () => void; onAdd?: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between px-3 py-1.5 group">
+      <button onClick={onToggle} className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-nb-gray-500 dark:text-dark-muted hover:text-nb-black dark:hover:text-dark-text transition-colors">
+        {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+        <span>{title}</span>
+        {count !== undefined && count > 0 && (
+          <span className="ml-1 bg-nb-yellow text-nb-black text-2xs font-black px-1 border border-nb-black dark:border-dark-border">{count}</span>
+        )}
+      </button>
+      {onAdd && (
+        <button onClick={onAdd} className="opacity-0 group-hover:opacity-100 text-nb-gray-400 hover:text-nb-black dark:hover:text-dark-text transition-all">
+          <Plus size={14} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+export default function ChannelSidebar() {
+  const {
+    channels, agents, humans, activeChannelName, selectChannel,
+    createChannel, currentUser, unreadCounts, wsConnected,
+  } = useApp();
+
+  const [channelsCollapsed, setChannelsCollapsed] = useState(false);
+  const [dmsCollapsed, setDmsCollapsed] = useState(false);
+  const [agentsCollapsed, setAgentsCollapsed] = useState(false);
+  const [showCreateChannel, setShowCreateChannel] = useState(false);
+  const [newChannelName, setNewChannelName] = useState('');
+
+  const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+
+  const handleCreateChannel = () => {
+    const name = newChannelName.trim().replace(/[^a-z0-9-_]/gi, '-').toLowerCase();
+    if (!name) return;
+    createChannel(name);
+    setNewChannelName('');
+    setShowCreateChannel(false);
+  };
+
+  const activityColors: Record<string, string> = {
+    thinking: 'bg-nb-yellow animate-pulse',
+    working: 'bg-nb-orange animate-pulse',
+    online: 'bg-nb-green',
+    offline: 'bg-nb-gray-400',
+    error: 'bg-nb-red',
+  };
+
+  return (
+    <div className="w-[260px] h-full bg-nb-cream dark:bg-dark-surface border-r-3 border-nb-black dark:border-dark-border flex flex-col overflow-hidden">
+      <div className="px-3 py-3 border-b-3 border-nb-black dark:border-dark-border">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display font-black text-lg text-nb-black dark:text-dark-text truncate">Zouk</h2>
+          {totalUnread > 0 && (
+            <span className="bg-nb-pink text-nb-white text-2xs font-black px-1.5 py-0.5 border-2 border-nb-black shadow-nb-sm">
+              {totalUnread}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 mt-1">
+          <span className={`w-2 h-2 border border-nb-black dark:border-dark-border ${wsConnected ? 'bg-nb-green' : 'bg-nb-red'}`} />
+          <span className="text-xs text-nb-gray-500 dark:text-dark-muted truncate">{currentUser}</span>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto py-2 space-y-1 scrollbar-thin">
+        <div>
+          <SectionHeader
+            title="Channels"
+            count={channels.reduce((sum, c) => sum + (unreadCounts[c.name] || 0), 0)}
+            collapsed={channelsCollapsed}
+            onToggle={() => setChannelsCollapsed(!channelsCollapsed)}
+            onAdd={() => setShowCreateChannel(!showCreateChannel)}
+          />
+
+          {showCreateChannel && (
+            <div className="px-3 pb-2">
+              <div className="flex items-center border-2 border-nb-black dark:border-dark-border bg-nb-white dark:bg-dark-elevated">
+                <Hash size={14} className="ml-2 text-nb-gray-400 flex-shrink-0" />
+                <input
+                  type="text"
+                  value={newChannelName}
+                  onChange={e => setNewChannelName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleCreateChannel(); if (e.key === 'Escape') setShowCreateChannel(false); }}
+                  placeholder="new-channel"
+                  className="w-full px-1.5 py-1 bg-transparent text-sm text-nb-black dark:text-dark-text placeholder:text-nb-gray-400 focus:outline-none"
+                  autoFocus
+                />
+              </div>
+            </div>
+          )}
+
+          {!channelsCollapsed && channels.map(ch => {
+            const unread = unreadCounts[ch.name] || 0;
+            const isActive = activeChannelName === ch.name;
+            return (
+              <button
+                key={ch.id}
+                onClick={() => selectChannel(ch.name)}
+                className={`
+                  w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-75 group
+                  ${isActive
+                    ? 'bg-nb-yellow border-2 border-nb-black shadow-nb-sm font-bold text-nb-black mx-1 -ml-0'
+                    : unread > 0
+                      ? 'font-semibold text-nb-black dark:text-dark-text hover:bg-nb-gray-100 dark:hover:bg-dark-elevated'
+                      : 'text-nb-gray-600 dark:text-dark-muted hover:bg-nb-gray-100 dark:hover:bg-dark-elevated hover:text-nb-black dark:hover:text-dark-text'
+                  }
+                `}
+              >
+                <Hash size={14} className="flex-shrink-0" />
+                <span className="truncate text-sm">{ch.name}</span>
+                {unread > 0 && !isActive && (
+                  <span className="ml-auto bg-nb-pink text-nb-white text-2xs font-black px-1.5 py-0.5 border-2 border-nb-black shadow-nb-sm min-w-[20px] text-center">
+                    {unread}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div>
+          <SectionHeader
+            title="Agents"
+            count={agents.filter(a => a.status === 'active').length}
+            collapsed={agentsCollapsed}
+            onToggle={() => setAgentsCollapsed(!agentsCollapsed)}
+          />
+          {!agentsCollapsed && agents.map(agent => (
+            <div
+              key={agent.id}
+              className="flex items-center gap-2 px-3 py-1.5 text-nb-gray-600 dark:text-dark-muted hover:bg-nb-gray-100 dark:hover:bg-dark-elevated transition-colors"
+            >
+              <Bot size={14} className="flex-shrink-0" />
+              <span className="truncate text-sm">{agent.displayName || agent.name}</span>
+              <span className={`ml-auto w-2 h-2 border border-nb-black dark:border-dark-border flex-shrink-0 ${activityColors[agent.activity || 'offline']}`} />
+            </div>
+          ))}
+          {!agentsCollapsed && agents.length === 0 && (
+            <div className="px-3 py-1.5 text-xs text-nb-gray-400 dark:text-dark-muted italic">No agents</div>
+          )}
+        </div>
+
+        <div>
+          <SectionHeader
+            title="People"
+            collapsed={dmsCollapsed}
+            onToggle={() => setDmsCollapsed(!dmsCollapsed)}
+          />
+          {!dmsCollapsed && humans.map(h => (
+            <button
+              key={h.id}
+              onClick={() => selectChannel(h.name, true)}
+              className={`
+                w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-75
+                ${activeChannelName === h.name
+                  ? 'bg-nb-blue border-2 border-nb-black shadow-nb-sm font-bold text-nb-white mx-1 -ml-0'
+                  : 'text-nb-gray-600 dark:text-dark-muted hover:bg-nb-gray-100 dark:hover:bg-dark-elevated hover:text-nb-black dark:hover:text-dark-text'
+                }
+              `}
+            >
+              <User size={14} className="flex-shrink-0" />
+              <span className="truncate text-sm">{h.name}</span>
+              {(unreadCounts[h.name] || 0) > 0 && activeChannelName !== h.name && (
+                <span className="ml-auto bg-nb-pink text-nb-white text-2xs font-black px-1.5 py-0.5 border-2 border-nb-black shadow-nb-sm min-w-[20px] text-center">
+                  {unreadCounts[h.name]}
+                </span>
+              )}
+            </button>
+          ))}
+          {!dmsCollapsed && humans.length === 0 && (
+            <div className="px-3 py-1.5 text-xs text-nb-gray-400 dark:text-dark-muted italic">No people online</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
