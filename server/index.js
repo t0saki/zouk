@@ -81,7 +81,7 @@ const store = {
   messages: [], // { id, seq, channelId, channelName, channelType, threadId, senderName, senderType, content, createdAt, attachments, taskNumber, taskStatus, taskAssigneeId, taskAssigneeType }
   tasks: [], // { taskNumber, channelId, title, status, messageId, claimedByName, claimedByType, createdByName }
   agents: {}, // agentId -> { name, displayName, runtime, model, status, sessionId, ws }
-  humans: [{ name: "local-user" }],
+  humans: [],
   attachments: {}, // id -> { filename, buffer, contentType }
   agentReadSeq: {}, // agentId -> last seq delivered/read
   seq: 0,

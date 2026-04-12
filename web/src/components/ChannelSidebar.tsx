@@ -200,7 +200,7 @@ export default function ChannelSidebar() {
             collapsed={dmsCollapsed}
             onToggle={() => setDmsCollapsed(!dmsCollapsed)}
           />
-          {!dmsCollapsed && humans.map(h => (
+          {!dmsCollapsed && humans.filter(h => h.name !== currentUser).map(h => (
             <button
               key={h.id}
               onClick={() => selectChannel(h.name, true)}
@@ -221,7 +221,7 @@ export default function ChannelSidebar() {
               )}
             </button>
           ))}
-          {!dmsCollapsed && humans.length === 0 && (
+          {!dmsCollapsed && humans.filter(h => h.name !== currentUser).length === 0 && (
             <div className="px-3 py-1.5 text-xs text-nc-muted italic font-mono">No people online</div>
           )}
         </div>
