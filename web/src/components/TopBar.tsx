@@ -1,15 +1,15 @@
-import { Hash, Users, PanelRightOpen, PanelRightClose, Menu, Wifi, WifiOff } from 'lucide-react';
+import { Hash, Users, PanelRightOpen, PanelRightClose, Menu, Wifi, WifiOff, MessageSquare, Bot, Settings } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 
 export default function TopBar() {
   const {
-    activeChannelName, viewMode,
+    activeChannelName, viewMode, setViewMode,
     rightPanel, setRightPanel, closeRightPanel, sidebarOpen, setSidebarOpen,
-    wsConnected, daemonConnected,
+    wsConnected, daemonConnected, setSettingsOpen,
   } = useApp();
 
   return (
-    <div className="h-14 border-b-3 border-nb-black dark:border-dark-border bg-nb-white dark:bg-dark-surface flex items-center px-4 gap-3">
+    <div className="h-14 border-b-3 border-nb-black dark:border-dark-border bg-nb-white dark:bg-dark-surface flex items-center px-2 sm:px-4 gap-2 sm:gap-3">
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
         className="lg:hidden w-8 h-8 border-2 border-nb-black dark:border-dark-border flex items-center justify-center hover:bg-nb-gray-100 dark:hover:bg-dark-elevated transition-colors"
@@ -39,13 +39,47 @@ export default function TopBar() {
       <div className="flex items-center gap-2 text-xs">
         <span className={`flex items-center gap-1 px-2 py-0.5 border-2 font-semibold ${wsConnected ? 'border-nb-green bg-nb-green-light text-nb-black' : 'border-nb-red bg-nb-red-light text-nb-black'}`}>
           {wsConnected ? <Wifi size={12} /> : <WifiOff size={12} />}
-          {wsConnected ? 'Connected' : 'Disconnected'}
+          <span className="hidden sm:inline">{wsConnected ? 'Connected' : 'Disconnected'}</span>
         </span>
         {daemonConnected && (
           <span className="flex items-center gap-1 px-2 py-0.5 border-2 border-nb-blue bg-nb-blue-light text-nb-black font-semibold">
-            Daemon
+            <span className="hidden sm:inline">Daemon</span>
+            <span className="sm:hidden">D</span>
           </span>
         )}
+      </div>
+
+      {/* Mobile-only: view mode switches + settings (hidden on desktop where WorkspaceRail provides these) */}
+      <div className="flex lg:hidden items-center gap-1">
+        <button
+          onClick={() => setViewMode('threads')}
+          className={`w-8 h-8 border-2 flex items-center justify-center transition-all
+            ${viewMode === 'threads'
+              ? 'border-nb-black bg-nb-blue text-nb-white shadow-nb-sm'
+              : 'border-nb-gray-200 dark:border-dark-border text-nb-gray-500 dark:text-dark-muted hover:border-nb-black hover:text-nb-black'
+            }`}
+          title="Threads"
+        >
+          <MessageSquare size={14} />
+        </button>
+        <button
+          onClick={() => setViewMode('agents')}
+          className={`w-8 h-8 border-2 flex items-center justify-center transition-all
+            ${viewMode === 'agents'
+              ? 'border-nb-black bg-nb-green text-nb-black shadow-nb-sm'
+              : 'border-nb-gray-200 dark:border-dark-border text-nb-gray-500 dark:text-dark-muted hover:border-nb-black hover:text-nb-black'
+            }`}
+          title="Agents"
+        >
+          <Bot size={14} />
+        </button>
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="w-8 h-8 border-2 border-nb-gray-200 dark:border-dark-border flex items-center justify-center text-nb-gray-500 dark:text-dark-muted hover:border-nb-black hover:text-nb-black transition-all"
+          title="Settings"
+        >
+          <Settings size={14} />
+        </button>
       </div>
 
       <div className="flex items-center gap-1">
