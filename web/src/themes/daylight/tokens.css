@@ -1,4 +1,4 @@
-[data-theme="daylight"] {
+html[data-theme="daylight"] {
   /* Surfaces */
   --nc-black: 255 255 255;
   --nc-deep: 248 249 251;

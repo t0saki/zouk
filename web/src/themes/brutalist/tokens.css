@@ -1,4 +1,4 @@
-[data-theme="brutalist"] {
+html[data-theme="brutalist"] {
   /* Surfaces */
   --nc-black: 255 252 245;
   --nc-deep: 250 248 240;

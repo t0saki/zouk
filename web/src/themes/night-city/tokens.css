@@ -1,4 +1,4 @@
-[data-theme="night-city"] {
+html[data-theme="night-city"] {
   /* Surfaces */
   --nc-black: 10 10 15;
   --nc-deep: 13 13 20;
