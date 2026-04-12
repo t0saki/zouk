@@ -70,12 +70,14 @@ export default function SettingsModal() {
             <h3 className="font-display font-bold text-base text-nc-text-bright tracking-wider">
               {navItems.find(n => n.key === section)?.label}
             </h3>
-            <button
-              onClick={() => setSettingsOpen(false)}
-              className="cyber-btn w-8 h-8 border border-nc-border flex items-center justify-center text-nc-muted hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10"
-            >
-              <X size={16} />
-            </button>
+            <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+              <button
+                onClick={() => setSettingsOpen(false)}
+                className="cyber-btn w-8 h-8 border border-nc-border flex items-center justify-center text-nc-muted hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10"
+              >
+                <X size={16} />
+              </button>
+            </ScanlineTear>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">

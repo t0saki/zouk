@@ -377,36 +377,40 @@ function SettingsTab({
         <div>
           <label className="block text-xs font-bold text-nc-muted mb-1.5 font-mono tracking-wider">VISIBILITY</label>
           <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setVisibility('workspace')}
-              className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
-                visibility === 'workspace'
-                  ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
-                  : 'border-nc-border hover:bg-nc-elevated'
-              }`}
-            >
-              <Globe size={16} className="shrink-0 text-nc-cyan" />
-              <div>
-                <div className="font-bold text-sm text-nc-text-bright">Workspace</div>
-                <div className="text-xs text-nc-muted font-mono">All members</div>
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setVisibility('private')}
-              className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
-                visibility === 'private'
-                  ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
-                  : 'border-nc-border hover:bg-nc-elevated'
-              }`}
-            >
-              <Lock size={16} className="shrink-0 text-nc-red" />
-              <div>
-                <div className="font-bold text-sm text-nc-text-bright">Private</div>
-                <div className="text-xs text-nc-muted font-mono">Only you</div>
-              </div>
-            </button>
+            <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+              <button
+                type="button"
+                onClick={() => setVisibility('workspace')}
+                className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
+                  visibility === 'workspace'
+                    ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
+                    : 'border-nc-border hover:bg-nc-elevated'
+                }`}
+              >
+                <Globe size={16} className="shrink-0 text-nc-cyan" />
+                <div>
+                  <div className="font-bold text-sm text-nc-text-bright">Workspace</div>
+                  <div className="text-xs text-nc-muted font-mono">All members</div>
+                </div>
+              </button>
+            </ScanlineTear>
+            <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+              <button
+                type="button"
+                onClick={() => setVisibility('private')}
+                className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
+                  visibility === 'private'
+                    ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
+                    : 'border-nc-border hover:bg-nc-elevated'
+                }`}
+              >
+                <Lock size={16} className="shrink-0 text-nc-red" />
+                <div>
+                  <div className="font-bold text-sm text-nc-text-bright">Private</div>
+                  <div className="text-xs text-nc-muted font-mono">Only you</div>
+                </div>
+              </button>
+            </ScanlineTear>
           </div>
         </div>
 

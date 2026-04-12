@@ -14,13 +14,15 @@ function CopyButton({ text }: { text: string }) {
   };
 
   return (
-    <button
-      onClick={handleCopy}
-      className="cyber-btn w-7 h-7 flex items-center justify-center border border-nc-border bg-nc-panel hover:bg-nc-elevated hover:border-nc-cyan shrink-0 text-nc-muted hover:text-nc-cyan"
-      title="Copy"
-    >
-      {copied ? <Check size={12} className="text-nc-green" /> : <Copy size={12} />}
-    </button>
+    <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+      <button
+        onClick={handleCopy}
+        className="cyber-btn w-7 h-7 flex items-center justify-center border border-nc-border bg-nc-panel hover:bg-nc-elevated hover:border-nc-cyan shrink-0 text-nc-muted hover:text-nc-cyan"
+        title="Copy"
+      >
+        {copied ? <Check size={12} className="text-nc-green" /> : <Copy size={12} />}
+      </button>
+    </ScanlineTear>
   );
 }
 
@@ -93,12 +95,14 @@ export default function MachineSetupDialog({
             <h2 className="font-display font-black text-xl text-nc-text-bright tracking-wider">MACHINE_SETUP</h2>
             <p className="text-xs text-nc-muted mt-0.5 font-mono">Connect machines by running the daemon with an API key.</p>
           </div>
-          <button
-            onClick={onClose}
-            className="cyber-btn w-8 h-8 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 text-nc-muted"
-          >
-            <X size={16} />
-          </button>
+          <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+            <button
+              onClick={onClose}
+              className="cyber-btn w-8 h-8 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 text-nc-muted"
+            >
+              <X size={16} />
+            </button>
+          </ScanlineTear>
         </div>
 
         <div className="px-6 pb-5 space-y-5 pt-4">
@@ -181,13 +185,15 @@ export default function MachineSetupDialog({
                     <span className="text-2xs text-nc-muted shrink-0 font-mono">
                       {key.lastUsedAt ? `Used ${new Date(key.lastUsedAt).toLocaleDateString()}` : 'Never used'}
                     </span>
-                    <button
-                      onClick={() => handleRevoke(key.id)}
-                      className="cyber-btn w-7 h-7 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 shrink-0 text-nc-muted"
-                      title="Revoke key"
-                    >
-                      <Trash2 size={12} />
-                    </button>
+                    <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+                      <button
+                        onClick={() => handleRevoke(key.id)}
+                        className="cyber-btn w-7 h-7 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 shrink-0 text-nc-muted"
+                        title="Revoke key"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </ScanlineTear>
                   </div>
                 ))}
               </div>
@@ -234,12 +240,14 @@ export default function MachineSetupDialog({
           </div>
 
           <div className="pt-3 border-t border-nc-border">
-            <button
-              onClick={onClose}
-              className="cyber-btn-lg w-full py-2.5 border border-nc-border text-sm font-bold text-nc-muted hover:bg-nc-elevated hover:text-nc-text-bright font-mono"
-            >
-              CLOSE
-            </button>
+            <ScanlineTear className="w-full" config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+              <button
+                onClick={onClose}
+                className="cyber-btn-lg w-full py-2.5 border border-nc-border text-sm font-bold text-nc-muted hover:bg-nc-elevated hover:text-nc-text-bright font-mono"
+              >
+                CLOSE
+              </button>
+            </ScanlineTear>
           </div>
         </div>
       </div>

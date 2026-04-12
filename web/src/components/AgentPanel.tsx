@@ -95,18 +95,20 @@ function ConfigStartButton({
   onStart: () => void;
 }) {
   return (
-    <button
-      onClick={() => !isRunning && !isStarting && onStart()}
-      disabled={isRunning || isStarting}
-      className={`cyber-btn flex items-center gap-1 px-2.5 py-1 border text-2xs font-bold font-mono ${
-        isRunning
-          ? 'border-nc-border bg-nc-elevated text-nc-muted cursor-not-allowed'
-          : 'border-nc-green bg-nc-green/10 text-nc-green hover:bg-nc-green/20 hover:shadow-nc-green'
-      }`}
-    >
-      {isStarting ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} />}
-      {config.displayName || config.name}
-    </button>
+    <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+      <button
+        onClick={() => !isRunning && !isStarting && onStart()}
+        disabled={isRunning || isStarting}
+        className={`cyber-btn flex items-center gap-1 px-2.5 py-1 border text-2xs font-bold font-mono ${
+          isRunning
+            ? 'border-nc-border bg-nc-elevated text-nc-muted cursor-not-allowed'
+            : 'border-nc-green bg-nc-green/10 text-nc-green hover:bg-nc-green/20 hover:shadow-nc-green'
+        }`}
+      >
+        {isStarting ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} />}
+        {config.displayName || config.name}
+      </button>
+    </ScanlineTear>
   );
 }
 
@@ -170,11 +172,11 @@ export default function AgentsView() {
       <div className="w-72 shrink-0 border-r border-nc-border flex flex-col bg-nc-surface">
         <div className="flex h-12 items-center justify-between border-b border-nc-border px-4">
           <h1 className="font-display font-black text-sm text-nc-text-bright tracking-wider">AGENTS</h1>
-          <div className="flex items-center gap-1.5">
-            {archivedCount > 0 && (
+          {archivedCount > 0 && (
+            <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
               <button
                 onClick={() => setShowArchived(!showArchived)}
-                className={`px-2 py-0.5 border text-2xs font-bold font-mono transition-all ${
+                className={`cyber-btn px-2 py-0.5 border text-2xs font-bold font-mono transition-all ${
                   showArchived
                     ? 'border-nc-cyan bg-nc-cyan/10 text-nc-cyan'
                     : 'border-nc-border text-nc-muted hover:border-nc-cyan hover:text-nc-cyan'
@@ -182,15 +184,8 @@ export default function AgentsView() {
               >
                 {showArchived ? 'ACTIVE' : `ARCHIVED (${archivedCount})`}
               </button>
-            )}
-            <button
-              onClick={() => setShowCreate(true)}
-              className="cyber-btn w-7 h-7 flex items-center justify-center border border-nc-cyan bg-nc-cyan/10 text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan"
-              title="Create agent"
-            >
-              <Plus size={14} />
-            </button>
-          </div>
+            </ScanlineTear>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-thin">
@@ -206,25 +201,29 @@ export default function AgentsView() {
                   Machines ({machines.length})
                 </span>
               </button>
-              <button
-                onClick={() => setShowMachineSetup(true)}
-                className="w-6 h-6 flex items-center justify-center border border-nc-border hover:border-nc-cyan hover:text-nc-cyan hover:bg-nc-cyan/10 transition-all text-nc-muted"
-                title="Machine Setup & API Keys"
-              >
-                <Settings size={10} />
-              </button>
+              <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+                <button
+                  onClick={() => setShowMachineSetup(true)}
+                  className="cyber-btn w-6 h-6 flex items-center justify-center border border-nc-border hover:border-nc-cyan hover:text-nc-cyan hover:bg-nc-cyan/10 text-nc-muted"
+                  title="Machine Setup & API Keys"
+                >
+                  <Settings size={10} />
+                </button>
+              </ScanlineTear>
             </div>
             {machinesExpanded && (
               machines.length > 0 ? (
                 machines.map(m => <CompactMachineCard key={m.id} machine={m} />)
               ) : (
                 <div className="px-4 pb-2">
-                  <button
-                    onClick={() => setShowMachineSetup(true)}
-                    className="w-full border border-dashed border-nc-border px-3 py-2 text-2xs text-nc-muted text-center hover:border-nc-cyan hover:text-nc-cyan transition-colors font-mono"
-                  >
-                    + CONNECT_MACHINE
-                  </button>
+                  <ScanlineTear className="w-full" config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+                    <button
+                      onClick={() => setShowMachineSetup(true)}
+                      className="cyber-btn w-full border border-dashed border-nc-border px-3 py-2 text-2xs text-nc-muted text-center hover:border-nc-cyan hover:text-nc-cyan font-mono"
+                    >
+                      + CONNECT_MACHINE
+                    </button>
+                  </ScanlineTear>
                 </div>
               )
             )}

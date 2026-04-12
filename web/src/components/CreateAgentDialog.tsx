@@ -105,12 +105,14 @@ export default function CreateAgentDialog({
             <h2 className="font-display font-black text-xl text-nc-text-bright tracking-wider">CREATE_AGENT</h2>
             <p className="text-xs text-nc-muted mt-0.5 font-mono">Create a new AI agent on a connected machine.</p>
           </div>
-          <button
-            onClick={onClose}
-            className="cyber-btn w-8 h-8 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 text-nc-muted"
-          >
-            <X size={16} />
-          </button>
+          <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+            <button
+              onClick={onClose}
+              className="cyber-btn w-8 h-8 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 text-nc-muted"
+            >
+              <X size={16} />
+            </button>
+          </ScanlineTear>
         </div>
 
         <div className="px-6 pb-5 space-y-5 pt-4">
@@ -123,12 +125,14 @@ export default function CreateAgentDialog({
                   Connect a daemon to run agents.
                 </p>
                 {onOpenMachineSetup && (
-                  <button
-                    onClick={() => { onClose(); onOpenMachineSetup(); }}
-                    className="mt-2 px-3 py-1 border border-nc-yellow bg-nc-yellow/10 text-xs font-bold text-nc-yellow hover:bg-nc-yellow/20 transition-all font-mono"
-                  >
-                    MACHINE_SETUP
-                  </button>
+                  <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+                    <button
+                      onClick={() => { onClose(); onOpenMachineSetup(); }}
+                      className="cyber-btn mt-2 px-3 py-1 border border-nc-yellow bg-nc-yellow/10 text-xs font-bold text-nc-yellow hover:bg-nc-yellow/20 font-mono"
+                    >
+                      MACHINE_SETUP
+                    </button>
+                  </ScanlineTear>
                 )}
               </div>
             </div>
@@ -211,18 +215,19 @@ export default function CreateAgentDialog({
             {machineRuntimes.length > 0 ? (
               <div className="flex gap-2 flex-wrap">
                 {machineRuntimes.map((rt) => (
-                  <button
-                    key={rt}
-                    type="button"
-                    onClick={() => setRuntime(rt)}
-                    className={`cyber-btn px-3 py-1.5 border text-sm font-bold font-mono ${
-                      runtime === rt
-                        ? 'border-nc-cyan bg-nc-cyan/10 text-nc-cyan shadow-nc-cyan'
-                        : 'border-nc-border text-nc-muted hover:bg-nc-elevated'
-                    }`}
-                  >
-                    {RUNTIME_LABELS[rt] || rt}
-                  </button>
+                  <ScanlineTear key={rt} config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setRuntime(rt)}
+                      className={`cyber-btn px-3 py-1.5 border text-sm font-bold font-mono ${
+                        runtime === rt
+                          ? 'border-nc-cyan bg-nc-cyan/10 text-nc-cyan shadow-nc-cyan'
+                          : 'border-nc-border text-nc-muted hover:bg-nc-elevated'
+                      }`}
+                    >
+                      {RUNTIME_LABELS[rt] || rt}
+                    </button>
+                  </ScanlineTear>
                 ))}
               </div>
             ) : (
@@ -259,36 +264,40 @@ export default function CreateAgentDialog({
           <div>
             <label className="block text-xs font-bold text-nc-muted mb-1.5 font-mono tracking-wider">VISIBILITY</label>
             <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setVisibility('workspace')}
-                className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
-                  visibility === 'workspace'
-                    ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
-                    : 'border-nc-border hover:bg-nc-elevated'
-                }`}
-              >
-                <Globe size={16} className="shrink-0 text-nc-cyan" />
-                <div>
-                  <div className="font-bold text-sm text-nc-text-bright">Workspace</div>
-                  <div className="text-xs text-nc-muted font-mono">All members can assign</div>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setVisibility('private')}
-                className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
-                  visibility === 'private'
-                    ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
-                    : 'border-nc-border hover:bg-nc-elevated'
-                }`}
-              >
-                <Lock size={16} className="shrink-0 text-nc-red" />
-                <div>
-                  <div className="font-bold text-sm text-nc-text-bright">Private</div>
-                  <div className="text-xs text-nc-muted font-mono">Only you can assign</div>
-                </div>
-              </button>
+              <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+                <button
+                  type="button"
+                  onClick={() => setVisibility('workspace')}
+                  className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
+                    visibility === 'workspace'
+                      ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
+                      : 'border-nc-border hover:bg-nc-elevated'
+                  }`}
+                >
+                  <Globe size={16} className="shrink-0 text-nc-cyan" />
+                  <div>
+                    <div className="font-bold text-sm text-nc-text-bright">Workspace</div>
+                    <div className="text-xs text-nc-muted font-mono">All members can assign</div>
+                  </div>
+                </button>
+              </ScanlineTear>
+              <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+                <button
+                  type="button"
+                  onClick={() => setVisibility('private')}
+                  className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
+                    visibility === 'private'
+                      ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
+                      : 'border-nc-border hover:bg-nc-elevated'
+                  }`}
+                >
+                  <Lock size={16} className="shrink-0 text-nc-red" />
+                  <div>
+                    <div className="font-bold text-sm text-nc-text-bright">Private</div>
+                    <div className="text-xs text-nc-muted font-mono">Only you can assign</div>
+                  </div>
+                </button>
+              </ScanlineTear>
             </div>
           </div>
 
@@ -297,18 +306,19 @@ export default function CreateAgentDialog({
               <label className="block text-xs font-bold text-nc-muted mb-1.5 font-mono tracking-wider">MODEL</label>
               <div className="flex gap-2 flex-wrap">
                 {models.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setModel(m)}
-                    className={`cyber-btn px-3 py-1.5 border text-sm font-bold font-mono ${
-                      model === m
-                        ? 'border-nc-cyan bg-nc-cyan/10 text-nc-cyan shadow-nc-cyan'
-                        : 'border-nc-border text-nc-muted hover:bg-nc-elevated'
-                    }`}
-                  >
-                    {m}
-                  </button>
+                  <ScanlineTear key={m} config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setModel(m)}
+                      className={`cyber-btn px-3 py-1.5 border text-sm font-bold font-mono ${
+                        model === m
+                          ? 'border-nc-cyan bg-nc-cyan/10 text-nc-cyan shadow-nc-cyan'
+                          : 'border-nc-border text-nc-muted hover:bg-nc-elevated'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  </ScanlineTear>
                 ))}
               </div>
             </div>
@@ -331,12 +341,14 @@ export default function CreateAgentDialog({
                 <Plus size={14} /> CREATE_AND_START
               </button>
             </ScanlineTear>
-            <button
-              onClick={onClose}
-              className="cyber-btn px-5 py-2.5 border border-nc-border text-sm font-bold text-nc-muted hover:bg-nc-elevated font-mono"
-            >
-              CANCEL
-            </button>
+            <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+              <button
+                onClick={onClose}
+                className="cyber-btn px-5 py-2.5 border border-nc-border text-sm font-bold text-nc-muted hover:bg-nc-elevated font-mono"
+              >
+                CANCEL
+              </button>
+            </ScanlineTear>
           </div>
         </div>
       </div>
