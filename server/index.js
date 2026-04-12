@@ -638,8 +638,15 @@ app.get("/api/attachments/:attachmentId", (req, res) => {
 
 // ─── Web API: for the frontend ────────────────────────────────────
 
+// Auth middleware: blocks guest (unauthenticated) users from write operations
+function requireAuth(req, res, next) {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+  if (token && authSessions.has(token)) return next();
+  return res.status(403).json({ error: "Authentication required. Sign in with Google to perform this action." });
+}
+
 // Send message from web UI (human user)
-app.post("/api/messages", (req, res) => {
+app.post("/api/messages", requireAuth, (req, res) => {
   const { target, content, senderName = "local-user" } = req.body;
   const { channelName, channelType, threadId, dmPeer } = parseTarget(target, senderName);
   const ch = findOrCreateChannel(channelName, channelType);
@@ -695,7 +702,7 @@ app.get("/api/channels", (req, res) => {
 });
 
 // Create channel
-app.post("/api/channels", (req, res) => {
+app.post("/api/channels", requireAuth, (req, res) => {
   const { name, description } = req.body;
   const ch = findOrCreateChannel(name);
   ch.description = description || "";
@@ -742,7 +749,7 @@ app.get("/api/agent-configs", (req, res) => {
 });
 
 // Create/save agent config
-app.post("/api/agent-configs", (req, res) => {
+app.post("/api/agent-configs", requireAuth, (req, res) => {
   const config = req.body;
   if (!config.id) config.id = `agent-${uuidv4().substring(0, 8)}`;
   const existing = agentConfigs.findIndex((c) => c.id === config.id);
@@ -759,7 +766,7 @@ app.post("/api/agent-configs", (req, res) => {
 });
 
 // Update agent config
-app.put("/api/agents/:id/config", (req, res) => {
+app.put("/api/agents/:id/config", requireAuth, (req, res) => {
   const { id } = req.params;
   const updates = req.body;
   const idx = agentConfigs.findIndex((c) => c.id === id);
@@ -772,7 +779,7 @@ app.put("/api/agents/:id/config", (req, res) => {
 });
 
 // Delete agent config
-app.delete("/api/agents/:id", (req, res) => {
+app.delete("/api/agents/:id", requireAuth, (req, res) => {
   const { id } = req.params;
   const idx = agentConfigs.findIndex((c) => c.id === id);
   if (idx >= 0) {
@@ -792,7 +799,7 @@ app.delete("/api/agents/:id", (req, res) => {
 // ─── Machine API key management ─────────────────────────────────
 
 // List machine API keys (masked)
-app.get("/api/machine-keys", (req, res) => {
+app.get("/api/machine-keys", requireAuth, (req, res) => {
   const keys = machineKeys
     .filter((k) => !k.revokedAt)
     .map((k) => ({
@@ -806,7 +813,7 @@ app.get("/api/machine-keys", (req, res) => {
 });
 
 // Generate a new machine API key
-app.post("/api/machine-keys", (req, res) => {
+app.post("/api/machine-keys", requireAuth, (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: "Name is required" });
 
@@ -837,7 +844,7 @@ app.post("/api/machine-keys", (req, res) => {
 });
 
 // Revoke a machine API key
-app.delete("/api/machine-keys/:id", (req, res) => {
+app.delete("/api/machine-keys/:id", requireAuth, (req, res) => {
   const { id } = req.params;
   const key = machineKeys.find((k) => k.id === id);
   if (!key) return res.status(404).json({ error: "Key not found" });
@@ -898,7 +905,7 @@ function startAgentOnDaemon(id, config) {
 }
 
 // Start an agent
-app.post("/api/agents/start", (req, res) => {
+app.post("/api/agents/start", requireAuth, (req, res) => {
   const config = req.body;
   const id = config.agentId || config.id || `agent-${uuidv4().substring(0, 8)}`;
 
@@ -916,7 +923,7 @@ app.post("/api/agents/start", (req, res) => {
 });
 
 // Stop an agent
-app.post("/api/agents/:id/stop", (req, res) => {
+app.post("/api/agents/:id/stop", requireAuth, (req, res) => {
   const { id } = req.params;
   const ws = daemonSockets.get(id);
   if (ws && ws.readyState === 1) {
@@ -970,9 +977,11 @@ server.on("upgrade", (request, socket, head) => {
       handleDaemonConnection(ws, apiKey);
     });
   } else if (parsed.pathname === "/ws") {
-    // Web UI WebSocket connection
+    // Web UI WebSocket connection — check optional auth token
+    const wsToken = parsed.searchParams.get("token");
+    const wsAuthenticated = !!(wsToken && authSessions.has(wsToken));
     wss.handleUpgrade(request, socket, head, (ws) => {
-      handleWebConnection(ws);
+      handleWebConnection(ws, wsAuthenticated);
     });
   } else {
     socket.destroy();
@@ -1127,9 +1136,18 @@ function handleDaemonMessage(ws, msg, connectedAgents) {
   }
 }
 
-function handleWebConnection(ws) {
+// WS message types that require authentication (write operations)
+const WS_AUTH_REQUIRED_TYPES = new Set([
+  "agent:start",
+  "agent:stop",
+  "agent:reset-workspace",
+  "machine:workspace:delete",
+]);
+
+function handleWebConnection(ws, authenticated) {
+  ws._authenticated = !!authenticated;
   webSockets.add(ws);
-  console.log("[web] Client connected");
+  console.log(`[web] Client connected (authenticated: ${ws._authenticated})`);
 
   // Send initial state
   ws.send(JSON.stringify({
@@ -1157,6 +1175,13 @@ function handleWebConnection(ws) {
 }
 
 function handleWebMessage(ws, msg) {
+  // Block write-type messages from unauthenticated (guest) connections
+  if (WS_AUTH_REQUIRED_TYPES.has(msg.type) && !ws._authenticated) {
+    ws.send(JSON.stringify({ type: "error", message: "Authentication required. Sign in with Google to perform this action." }));
+    console.log(`[web] Blocked unauthenticated WS message: ${msg.type}`);
+    return;
+  }
+
   switch (msg.type) {
     case "workspace:list": {
       const agentWs = daemonSockets.get(msg.agentId);
