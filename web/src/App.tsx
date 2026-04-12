@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { AppProvider, useApp } from './store/AppContext';
 import WorkspaceRail from './components/WorkspaceRail';
 import ChannelSidebar from './components/ChannelSidebar';
@@ -13,11 +12,7 @@ import AgentsView from './components/AgentPanel';
 import LoginScreen from './components/LoginScreen';
 
 function AppShell() {
-  const { theme, viewMode, sidebarOpen, isLoggedIn } = useApp();
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
+  const { viewMode, sidebarOpen, isLoggedIn } = useApp();
 
   if (!isLoggedIn) {
     return <LoginScreen />;
@@ -26,7 +21,7 @@ function AppShell() {
   const showMessageView = viewMode === 'channel' || viewMode === 'dm';
 
   return (
-    <div className="h-screen w-screen flex overflow-hidden bg-nb-gray-100 dark:bg-dark-bg font-body text-nb-black dark:text-dark-text">
+    <div className="h-screen w-screen flex overflow-hidden bg-nc-black font-body text-nc-text cyber-scanlines">
       <WorkspaceRail />
 
       <div className={`${sidebarOpen ? 'block' : 'hidden'} lg:block flex-shrink-0`}>
