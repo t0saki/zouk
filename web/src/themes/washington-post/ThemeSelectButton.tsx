@@ -17,18 +17,15 @@ const css = `
   cursor: pointer;
   overflow: hidden;
   border: 1px solid #867668;
-  background: linear-gradient(180deg, #fffdf8 0%, #f5ede2 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.75), 0 1px 3px rgba(31, 24, 21, 0.12);
+  background: #f5ede2;
   color: #171717;
-  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+  transition: border-color 140ms ease;
 }
 .wp-theme-btn::before {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(90deg, rgba(124,36,48,0.08), transparent 22%),
-    repeating-linear-gradient(0deg, rgba(113, 97, 81, 0.06), rgba(113, 97, 81, 0.06) 1px, transparent 1px, transparent 24px);
+  background: repeating-linear-gradient(0deg, rgba(113, 97, 81, 0.06), rgba(113, 97, 81, 0.06) 1px, transparent 1px, transparent 24px);
   pointer-events: none;
 }
 .wp-theme-btn::after {
@@ -38,17 +35,15 @@ const css = `
   bottom: 12px;
   right: 10px;
   width: 1px;
-  background: linear-gradient(180deg, rgba(124,36,48,0), rgba(124,36,48,0.55), rgba(124,36,48,0));
+  background: rgba(124,36,48,0.35);
   pointer-events: none;
 }
 .wp-theme-btn:hover {
-  transform: translateY(-1px);
   border-color: #7c2430;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.88), 0 8px 18px rgba(31, 24, 21, 0.12);
 }
 .wp-theme-btn[data-selected='true'] {
   border-color: #7c2430;
-  box-shadow: inset 0 0 0 1px rgba(124,36,48,0.24), 0 10px 20px rgba(124,36,48,0.12);
+  border-width: 2px;
 }
 .wp-theme-btn__kicker {
   position: relative;

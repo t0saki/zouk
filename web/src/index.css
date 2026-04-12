@@ -258,7 +258,8 @@ html[data-theme="washington-post"] .cyber-panel-elevated {
 }
 
 html[data-theme="washington-post"] .cyber-divider {
-  background: linear-gradient(90deg, transparent, rgb(var(--nc-border-bright) / 0.7), transparent);
+  background: none;
+  border-top: 1px solid rgb(var(--nc-border-bright) / 0.5);
 }
 
 html[data-theme="washington-post"] .status-chip,
@@ -270,7 +271,7 @@ html[data-theme="washington-post"] .status-chip-sm {
 
 html[data-theme="washington-post"] .cyber-btn,
 html[data-theme="washington-post"] .cyber-btn-lg {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.66);
+  box-shadow: none;
 }
 
 /* ==========================================================================

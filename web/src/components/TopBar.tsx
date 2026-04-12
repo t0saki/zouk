@@ -8,7 +8,7 @@ export default function TopBar() {
   const {
     activeChannelName, viewMode,
     rightPanel, setRightPanel, closeRightPanel, sidebarOpen, setSidebarOpen,
-    wsConnected, daemonConnected, setSettingsOpen, theme,
+    wsConnected, daemonConnected, theme,
   } = useApp();
   const nc = isNightCity();
   const wapo = theme === 'washington-post';
