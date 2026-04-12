@@ -114,7 +114,7 @@ export function useGlitch<T extends HTMLElement>(config: GlitchConfig = {}) {
       if (intervalRef.current) clearTimeout(intervalRef.current);
       if (burstRef.current) clearTimeout(burstRef.current);
     };
-  }, [trigger, scheduleNext, clearVars]);
+  }, [trigger, scheduleNext, clearVars, startBurst]);
 
   return ref;
 }

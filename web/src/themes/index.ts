@@ -1,12 +1,10 @@
 import type { ComponentType } from 'react';
 import { nightCity } from './night-city';
 import { brutalist } from './brutalist';
-import { daylight } from './daylight';
 import NightCityThemeSelectButton from './night-city/ThemeSelectButton';
 import BrutalistThemeSelectButton from './brutalist/ThemeSelectButton';
-import DaylightThemeSelectButton from './daylight/ThemeSelectButton';
 
-export type ThemeId = 'night-city' | 'brutalist' | 'daylight';
+export type ThemeId = 'night-city' | 'brutalist';
 
 export interface ThemeSelectButtonProps {
   selected: boolean;
@@ -29,7 +27,6 @@ export interface ThemeDefinition {
 export const themes: ThemeDefinition[] = [
   { ...nightCity, ThemeSelectButton: NightCityThemeSelectButton },
   { ...brutalist, ThemeSelectButton: BrutalistThemeSelectButton },
-  { ...daylight, ThemeSelectButton: DaylightThemeSelectButton },
 ];
 
 export const DEFAULT_THEME: ThemeId = 'night-city';

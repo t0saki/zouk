@@ -1,33 +1,54 @@
-import type { CSSProperties } from 'react';
+import { useRef, useCallback } from 'react';
 
-const base: CSSProperties = {
-  all: 'unset',
-  boxSizing: 'border-box',
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: '88px',
-  width: '100%',
-  padding: '16px',
-  cursor: 'pointer',
-  overflow: 'hidden',
-  fontFamily: "'Space Grotesk', system-ui, sans-serif",
-  fontSize: '14px',
-  fontWeight: 900,
-  letterSpacing: '0.14em',
-  textTransform: 'uppercase' as const,
-  color: '#171717',
-  background: '#fffaf0',
-  border: '3px solid #171717',
-  boxShadow: '3px 3px 0 #171717',
-  transition: 'background 0.15s, box-shadow 0.15s, transform 0.15s',
-};
+const STYLE_ID = 'br-theme-btn-style';
 
-const active: CSSProperties = {
-  background: '#facc15',
-  boxShadow: '5px 5px 0 #171717',
-};
+const css = `
+.br-theme-btn {
+  all: initial;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 88px;
+  width: 100%;
+  padding: 16px;
+  cursor: pointer;
+  overflow: hidden;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #171717;
+  background: #facc15;
+  border: 3px solid #171717;
+  box-shadow: 3px 3px 0 #171717;
+  transition: background 150ms ease, box-shadow 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+.br-theme-btn:hover {
+  background: #fbbf24;
+  border-color: #000000;
+  box-shadow: 4px 4px 0 #171717;
+  transform: translate(-1px, -1px);
+}
+.br-theme-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #171717;
+}
+.br-theme-btn__label {
+  position: relative;
+  z-index: 1;
+}
+`;
+
+function ensureStyles() {
+  if (document.getElementById(STYLE_ID)) return;
+  const el = document.createElement('style');
+  el.id = STYLE_ID;
+  el.textContent = css;
+  document.head.appendChild(el);
+}
 
 interface Props {
   selected: boolean;
@@ -35,25 +56,21 @@ interface Props {
 }
 
 export default function BrutalistThemeSelectButton({ selected, onClick }: Props) {
+  const injected = useRef(false);
+  if (!injected.current) {
+    ensureStyles();
+    injected.current = true;
+  }
+
+  const handleClick = useCallback(() => onClick(), [onClick]);
+
   return (
     <button
-      onClick={onClick}
+      className="br-theme-btn"
+      onClick={handleClick}
       aria-pressed={selected}
-      style={{ ...base, ...(selected ? active : {}) }}
-      onMouseEnter={e => {
-        if (!selected) {
-          e.currentTarget.style.boxShadow = '4px 4px 0 #171717';
-          e.currentTarget.style.background = '#fef9c3';
-        }
-      }}
-      onMouseLeave={e => {
-        if (!selected) {
-          e.currentTarget.style.boxShadow = '3px 3px 0 #171717';
-          e.currentTarget.style.background = '#fffaf0';
-        }
-      }}
     >
-      <span>Brutalist</span>
+      <span className="br-theme-btn__label">Brutalist</span>
     </button>
   );
 }

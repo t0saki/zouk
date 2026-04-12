@@ -5,13 +5,14 @@ interface Props {
   duration?: number;
   onComplete?: () => void;
   children?: React.ReactNode;
+  themeAgnostic?: boolean;
 }
 
 const GLITCH_CHARS = '!<>-_\\/[]{}#$%^&*()=+|;:\'",.<>?~`@0123456789';
 
-export default function GlitchTransition({ active, duration = 600, onComplete, children }: Props) {
+export default function GlitchTransition({ active, duration = 600, onComplete, children, themeAgnostic = false }: Props) {
   const [phase, setPhase] = useState<'idle' | 'glitching' | 'done'>('idle');
-  const [bars, setBars] = useState<Array<{ top: number; height: number; offset: number; color: string }>>([]);
+  const [bars, setBars] = useState<Array<{ top: number; height: number; offset: number; colorVar: string }>>([]);
   const [scrambleText, setScrambleText] = useState('');
 
   const generateBars = useCallback(() => {
@@ -39,7 +40,7 @@ export default function GlitchTransition({ active, duration = 600, onComplete, c
 
     // On non-Night-City themes, skip the glitch visual and complete instantly
     const isNightCity = document.documentElement.getAttribute('data-theme') === 'night-city';
-    if (!isNightCity) {
+    if (!themeAgnostic && !isNightCity) {
       onComplete?.();
       return;
     }
@@ -60,7 +61,7 @@ export default function GlitchTransition({ active, duration = 600, onComplete, c
     }, 50);
 
     return () => clearInterval(interval);
-  }, [active, duration, generateBars, generateScramble, onComplete]);
+  }, [active, duration, generateBars, generateScramble, onComplete, themeAgnostic]);
 
   if (phase === 'idle') return <>{children}</>;
 

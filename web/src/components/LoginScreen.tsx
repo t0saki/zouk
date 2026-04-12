@@ -77,7 +77,12 @@ export default function LoginScreen() {
 
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-nc-black font-body cyber-scanlines">
-      <GlitchTransition active={glitchActive} duration={500} onComplete={handleGlitchComplete} />
+      <GlitchTransition
+        active={glitchActive}
+        duration={500}
+        onComplete={handleGlitchComplete}
+        themeAgnostic={pendingAction === null}
+      />
 
       {isNightCity() && (
         <div className="absolute inset-0 opacity-[0.03]" style={{
@@ -171,7 +176,9 @@ export default function LoginScreen() {
                       setPendingAction(null);
                       applyTheme(t.id);
                       setTheme(t.id);
-                      setGlitchActive(true);
+                      if (t.id === 'night-city') {
+                        setGlitchActive(true);
+                      }
                     }
                   }}
                 />

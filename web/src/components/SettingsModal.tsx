@@ -17,7 +17,9 @@ export default function SettingsModal() {
     if (newTheme === theme) return;
     applyTheme(newTheme);
     setTheme(newTheme);
-    setGlitchActive(true);
+    if (newTheme === 'night-city') {
+      setGlitchActive(true);
+    }
   }, [theme, setTheme]);
 
   const handleGlitchComplete = useCallback(() => {
@@ -37,7 +39,7 @@ export default function SettingsModal() {
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fade-in"
       onClick={(e) => e.target === e.currentTarget && setSettingsOpen(false)}
     >
-      <GlitchTransition active={glitchActive} duration={400} onComplete={handleGlitchComplete} />
+      <GlitchTransition active={glitchActive} duration={400} onComplete={handleGlitchComplete} themeAgnostic />
 
       <div className="cyber-panel w-full max-w-3xl h-[80vh] flex overflow-hidden animate-bounce-in cyber-bevel">
         <div className="w-48 bg-nc-deep border-r border-nc-border flex flex-col">
