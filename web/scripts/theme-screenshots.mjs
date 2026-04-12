@@ -92,6 +92,8 @@ async function captureTheme(page, themeName, baseUrl, outDir) {
   if (await guestBtn.first().isVisible({ timeout: 2000 }).catch(() => false)) {
     await guestBtn.first().click();
     await page.waitForTimeout(3000);
+  } else {
+    console.warn(`  ⚠ Guest login button not found for ${themeName} — screenshots may show login screen only`);
   }
 
   // Screenshot: full app view
@@ -117,6 +119,7 @@ async function captureTheme(page, themeName, baseUrl, outDir) {
   await page.evaluate(() => {
     localStorage.removeItem('zouk_current_user');
     localStorage.removeItem('zouk_auth_token');
+    localStorage.removeItem('zouk_theme');
   });
 }
 
