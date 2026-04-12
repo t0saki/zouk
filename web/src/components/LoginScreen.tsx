@@ -176,11 +176,6 @@ export default function LoginScreen() {
             </button>
           </ScanlineTear>
 
-          {!nc && (
-            <p className="mt-4 text-2xs text-nc-muted text-center">
-              Guest users get a random display name
-            </p>
-          )}
 
           <div className="mt-6 flex items-center gap-3">
             <div className="h-px flex-1 bg-nc-border" />
