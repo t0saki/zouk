@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { Send, Bot, User } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 
@@ -106,6 +106,15 @@ export default function MessageComposer({ threadTarget, placeholder }: { threadT
     } else {
       setMentionQuery(null);
     }
+  }, []);
+
+  // Close mention dropdown on blur (with delay to allow click)
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const onBlur = () => setTimeout(() => setMentionQuery(null), 150);
+    el.addEventListener('blur', onBlur);
+    return () => el.removeEventListener('blur', onBlur);
   }, []);
 
   const channelLabel = viewMode === 'dm' ? `@${activeChannelName}` : `#${activeChannelName}`;
