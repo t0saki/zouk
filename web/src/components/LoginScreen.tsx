@@ -3,6 +3,7 @@ import { useApp } from '../store/AppContext';
 import { useState, useEffect, useCallback } from 'react';
 import GlitchTransition from './glitch/GlitchTransition';
 import ScanlineTear from './glitch/ScanlineTear';
+import { themes, type ThemeId } from '../themes';
 
 const GLITCH_CHARS = '!<>-_\\/[]{}#$%^&*=+|;:0123456789ABCDEF';
 
@@ -42,7 +43,7 @@ function ScrambleTitle() {
 }
 
 export default function LoginScreen() {
-  const { loginWithGoogle, loginAsGuest, hasGoogleAuth } = useApp();
+  const { loginWithGoogle, loginAsGuest, hasGoogleAuth, theme, setTheme } = useApp();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [glitchActive, setGlitchActive] = useState(false);
@@ -151,13 +152,53 @@ export default function LoginScreen() {
 
           <div className="mt-6 flex items-center gap-3">
             <div className="h-px flex-1 bg-nc-border" />
-            <span className="text-2xs text-nc-muted/60 font-mono">v2.0.77</span>
+            <span className="text-2xs text-nc-muted/60 font-mono">THEME</span>
             <div className="h-px flex-1 bg-nc-border" />
           </div>
 
-          <p className="mt-3 text-2xs text-nc-muted/50 text-center font-mono tracking-wider">
-            NEURAL_LINK // ANONYMOUS_ACCESS
-          </p>
+          <div className="mt-3 flex gap-2">
+            {themes.map((t) => {
+              const active = theme === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    if (!active) {
+                      setPendingAction(null);
+                      setGlitchActive(true);
+                      setTimeout(() => setTheme(t.id), 250);
+                    }
+                  }}
+                  className="flex-1 group relative py-2 px-1 border text-center transition-all duration-200 overflow-hidden"
+                  style={{
+                    borderColor: active ? t.preview.accent : 'rgb(var(--nc-border))',
+                    background: active ? t.preview.accent + '18' : 'transparent',
+                  }}
+                >
+                  <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    style={{ background: t.preview.accent + '10' }}
+                  />
+                  <div className="flex items-center justify-center gap-1.5 relative">
+                    <div
+                      className="w-2.5 h-2.5 border"
+                      style={{
+                        background: t.preview.bg,
+                        borderColor: t.preview.accent,
+                        boxShadow: active ? `0 0 6px ${t.preview.accent}40` : 'none',
+                      }}
+                    />
+                    <span
+                      className="text-2xs font-bold font-mono tracking-wider"
+                      style={{ color: active ? t.preview.accent : 'rgb(var(--nc-muted))' }}
+                    >
+                      {t.name.toUpperCase()}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
 
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-nc-red/20 to-transparent" />
         </div>
