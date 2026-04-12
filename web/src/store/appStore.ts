@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import type {
   MessageRecord, ServerChannel, ServerAgent, ServerHuman,
   AgentConfig, ServerMachine, ViewMode, RightPanel, Theme, Toast,
@@ -9,6 +9,7 @@ import type { WsEvent } from '../lib/ws';
 import * as api from '../lib/api';
 import { normalizeMessage } from '../lib/api';
 import type { AuthUser } from '../lib/api';
+import { applyTheme } from '../themes';
 
 const CURRENT_USER_KEY = 'zouk_current_user';
 const AUTH_TOKEN_KEY = 'zouk_auth_token';
@@ -44,7 +45,7 @@ function getStoredAuth(): { token: string; user: AuthUser } | null {
 export function useAppStore() {
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem('zouk_theme');
-    if (stored === 'night-city' || stored === 'brutalist') return stored;
+    if (stored === 'night-city' || stored === 'brutalist' || stored === 'washington-post') return stored;
     return 'night-city';
   });
   const [currentUser, setCurrentUser] = useState(getStoredUser);
@@ -85,9 +86,9 @@ export function useAppStore() {
 
   const serverUrl = import.meta.env.VITE_SLOCK_SERVER_URL || '';
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     localStorage.setItem('zouk_theme', theme);
-    document.documentElement.setAttribute('data-theme', theme);
+    applyTheme(theme);
   }, [theme]);
 
   const addToast = useCallback((message: string, type: Toast['type'] = 'info') => {

@@ -1,5 +1,6 @@
 import { useGlitch } from '../../hooks/useGlitch';
 import type { ReactNode } from 'react';
+import { useNightCityEnabled } from '../../lib/themeUtils';
 
 interface Props {
   children: ReactNode;
@@ -9,7 +10,7 @@ interface Props {
 }
 
 export default function GlitchText({ children, className = '', as: Tag = 'span', intensity = 'medium' }: Props) {
-  const isNightCity = document.documentElement.getAttribute('data-theme') === 'night-city';
+  const isNightCity = useNightCityEnabled();
 
   const config = intensity === 'high'
     ? { minInterval: 1000, maxInterval: 3000, minSeverity: 0.5, maxSeverity: 1.0 }

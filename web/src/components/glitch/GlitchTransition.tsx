@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNightCityEnabled } from '../../lib/themeUtils';
 
 interface Props {
   active: boolean;
@@ -14,6 +15,7 @@ export default function GlitchTransition({ active, duration = 600, onComplete, c
   const [phase, setPhase] = useState<'idle' | 'glitching' | 'done'>('idle');
   const [bars, setBars] = useState<Array<{ top: number; height: number; offset: number; colorVar: string }>>([]);
   const [scrambleText, setScrambleText] = useState('');
+  const isNightCity = useNightCityEnabled();
 
   const generateBars = useCallback(() => {
     const count = 3 + Math.floor(Math.random() * 5);
@@ -39,7 +41,6 @@ export default function GlitchTransition({ active, duration = 600, onComplete, c
     }
 
     // On non-Night-City themes, skip the glitch visual and complete instantly
-    const isNightCity = document.documentElement.getAttribute('data-theme') === 'night-city';
     if (!themeAgnostic && !isNightCity) {
       onComplete?.();
       return;

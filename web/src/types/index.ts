@@ -150,7 +150,7 @@ export interface WorkspaceState {
 
 export type ViewMode = 'channel' | 'dm' | 'threads' | 'agents';
 export type RightPanel = 'thread' | 'details' | 'members' | 'agents' | null;
-export type Theme = 'night-city' | 'brutalist';
+export type Theme = 'night-city' | 'brutalist' | 'washington-post';
 
 export interface Toast {
   id: string;

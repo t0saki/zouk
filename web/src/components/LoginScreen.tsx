@@ -3,15 +3,13 @@ import { useApp } from '../store/AppContext';
 import { useState, useEffect, useCallback } from 'react';
 import GlitchTransition from './glitch/GlitchTransition';
 import ScanlineTear from './glitch/ScanlineTear';
-import { themes, applyTheme } from '../themes';
-import { ncStyle, isNightCity } from '../lib/themeUtils';
+import { themes } from '../themes';
 
 const GLITCH_CHARS = '!<>-_\\/[]{}#$%^&*=+|;:0123456789ABCDEF';
 
-function ScrambleTitle() {
+function ScrambleTitle({ nc }: { nc: boolean }) {
   const [text, setText] = useState('ZOUK');
   const target = 'ZOUK';
-  const nc = isNightCity();
 
   useEffect(() => {
     if (!nc) return; // No scramble effect on non-NC themes
@@ -85,7 +83,7 @@ export default function LoginScreen() {
     setPendingAction(null);
   }, [pendingAction, loginAsGuest]);
 
-  const nc = isNightCity();
+  const nc = theme === 'night-city';
 
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-nc-black font-body cyber-scanlines">
@@ -107,7 +105,7 @@ export default function LoginScreen() {
           {nc && <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-nc-cyan/40 to-transparent" />}
 
           <div className="mb-8">
-            <ScrambleTitle />
+            <ScrambleTitle nc={nc} />
             <p className={`text-sm text-nc-muted text-center mt-2 ${nc ? 'tracking-[0.15em] uppercase font-medium' : ''}`}>
               {nc ? 'Jack into the system' : 'Sign in to continue'}
             </p>
@@ -183,7 +181,7 @@ export default function LoginScreen() {
             <div className="h-px flex-1 bg-nc-border" />
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-3">
+          <div className="mt-3 grid grid-cols-1 gap-3">
             {themes.map((t) => {
               const Btn = t.ThemeSelectButton;
               return (
@@ -193,7 +191,6 @@ export default function LoginScreen() {
                   onClick={() => {
                     if (theme !== t.id) {
                       setPendingAction(null);
-                      applyTheme(t.id);
                       setTheme(t.id);
                       if (t.id === 'night-city') {
                         setGlitchActive(true);
