@@ -32,6 +32,11 @@ const css = `
   box-shadow: 4px 4px 0 #171717;
   transform: translate(-1px, -1px);
 }
+.br-theme-btn[data-selected='true'] {
+  background: #fde047;
+  border-color: #000000;
+  box-shadow: 5px 5px 0 #171717;
+}
 .br-theme-btn:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 #171717;
@@ -67,6 +72,7 @@ export default function BrutalistThemeSelectButton({ selected, onClick }: Props)
   return (
     <button
       className="br-theme-btn"
+      data-selected={selected ? 'true' : 'false'}
       onClick={handleClick}
       aria-pressed={selected}
     >

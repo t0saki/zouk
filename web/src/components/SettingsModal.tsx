@@ -3,20 +3,19 @@ import { X, User, Palette, Monitor } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import GlitchTransition from './glitch/GlitchTransition';
 import ScanlineTear from './glitch/ScanlineTear';
-import { themes, type ThemeId, applyTheme } from '../themes';
-import { isNightCity } from '../lib/themeUtils';
+import { themes, type ThemeId } from '../themes';
 
 type Section = 'profile' | 'appearance' | 'about';
 
 export default function SettingsModal() {
   const { settingsOpen, setSettingsOpen, theme, setTheme, currentUser, updateProfile } = useApp();
   const [section, setSection] = useState<Section>('profile');
+  const nc = theme === 'night-city';
   const [displayName, setDisplayName] = useState(currentUser);
   const [glitchActive, setGlitchActive] = useState(false);
 
   const handleThemeChange = useCallback((newTheme: ThemeId) => {
     if (newTheme === theme) return;
-    applyTheme(newTheme);
     setTheme(newTheme);
     if (newTheme === 'night-city') {
       setGlitchActive(true);
@@ -43,7 +42,6 @@ export default function SettingsModal() {
       <GlitchTransition active={glitchActive} duration={400} onComplete={handleGlitchComplete} themeAgnostic />
 
       <div className="cyber-panel w-full max-w-3xl h-[80vh] flex flex-col sm:flex-row overflow-hidden animate-bounce-in cyber-bevel">
-        {(() => { const nc = isNightCity(); return (
         <div className={`w-full sm:w-48 shrink-0 flex flex-row sm:flex-col ${nc ? 'bg-nc-deep border-b sm:border-b-0 sm:border-r border-nc-border' : 'bg-nc-panel border-b-[3px] sm:border-b-0 sm:border-r-[3px] border-nc-border-bright'}`}>
           <div className={`hidden sm:block px-4 py-4 ${nc ? 'border-b border-nc-border' : 'border-b-2 border-nc-border'}`}>
             {nc
@@ -74,12 +72,11 @@ export default function SettingsModal() {
             </button>
           </nav>
         </div>
-        ); })()}
 
         <div className="flex-1 flex flex-col min-h-0">
-          <div className={`hidden sm:flex h-14 items-center justify-between px-6 ${isNightCity() ? 'border-b border-nc-border' : 'border-b-[3px] border-nc-border-bright'}`}>
-            <h3 className={`font-display font-bold text-base text-nc-text-bright ${isNightCity() ? 'tracking-wider' : 'capitalize'}`}>
-              {isNightCity() ? navItems.find(n => n.key === section)?.label : navItems.find(n => n.key === section)?.label.charAt(0).toUpperCase()! + navItems.find(n => n.key === section)?.label.slice(1).toLowerCase()}
+          <div className={`hidden sm:flex h-14 items-center justify-between px-6 ${nc ? 'border-b border-nc-border' : 'border-b-[3px] border-nc-border-bright'}`}>
+            <h3 className={`font-display font-bold text-base text-nc-text-bright ${nc ? 'tracking-wider' : 'capitalize'}`}>
+              {nc ? navItems.find(n => n.key === section)?.label : navItems.find(n => n.key === section)?.label.charAt(0).toUpperCase()! + navItems.find(n => n.key === section)?.label.slice(1).toLowerCase()}
             </h3>
             <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
               <button

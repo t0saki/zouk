@@ -224,5 +224,5 @@ import { ncStyle } from '../lib/themeUtils';
 | Theme | Character | Fonts |
 |-------|-----------|-------|
 | **Night City** | Dark cyberpunk — neon glows, scanlines | Orbitron / Rajdhani / Space Mono |
-| **Daylight** | Clean light — soft grays, muted accents | Orbitron / Rajdhani / Space Mono |
+| **Washington Post** | Warm editorial — paper tones, serif headlines, handwritten accents | Newsreader / Libre Franklin / IBM Plex Mono |
 | **Brutalist** | Bold neobrutalist — thick borders, punchy primaries | Space Grotesk / Space Mono |

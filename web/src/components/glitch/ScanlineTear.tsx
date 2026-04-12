@@ -1,6 +1,7 @@
 import { useGlitch } from '../../hooks/useGlitch';
 import type { GlitchConfig } from '../../hooks/useGlitch';
 import type { ReactNode } from 'react';
+import { useNightCityEnabled } from '../../lib/themeUtils';
 
 interface ScanlineTearProps {
   children: ReactNode;
@@ -10,7 +11,7 @@ interface ScanlineTearProps {
 }
 
 export default function ScanlineTear({ children, className = '', config, tearContent }: ScanlineTearProps) {
-  const isNightCity = document.documentElement.getAttribute('data-theme') === 'night-city';
+  const isNightCity = useNightCityEnabled();
 
   const ref = useGlitch<HTMLDivElement>({
     minInterval: 2000,

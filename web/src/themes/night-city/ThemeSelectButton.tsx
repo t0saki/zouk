@@ -40,6 +40,10 @@ const css = `
 .nc-theme-btn:focus-visible {
   animation: cp-glitch-jump 360ms steps(2, jump-none) 1;
 }
+.nc-theme-btn[data-selected='true'] {
+  box-shadow: 0 0 24px rgba(94,246,255,0.34), inset 0 0 26px rgba(94,246,255,0.1);
+  border-color: #7bf7ff;
+}
 /* top accent line */
 .nc-theme-btn__top {
   position: absolute;
@@ -139,6 +143,7 @@ export default function NightCityThemeSelectButton({ selected, onClick }: Props)
     <div ref={glitchRef} className="nc-theme-btn-wrap">
       <button
         className="nc-theme-btn"
+        data-selected={selected ? 'true' : 'false'}
         onClick={handleClick}
         aria-pressed={selected}
       >
