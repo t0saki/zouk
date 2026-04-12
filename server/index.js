@@ -799,7 +799,7 @@ app.delete("/api/agents/:id", requireAuth, (req, res) => {
 // ─── Machine API key management ─────────────────────────────────
 
 // List machine API keys (masked)
-app.get("/api/machine-keys", (req, res) => {
+app.get("/api/machine-keys", requireAuth, (req, res) => {
   const keys = machineKeys
     .filter((k) => !k.revokedAt)
     .map((k) => ({
