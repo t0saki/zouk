@@ -21,6 +21,10 @@ export const DEFAULT_THEME: ThemeId = 'night-city';
 
 export function applyTheme(id: ThemeId) {
   document.documentElement.setAttribute('data-theme', id);
+  const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement | null;
+  if (favicon) {
+    favicon.href = id === 'night-city' ? '/zouk-night-city.svg' : '/zouk.svg';
+  }
 }
 
 export function getTheme(id: ThemeId): ThemeDefinition | undefined {
