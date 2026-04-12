@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { X, Plus, ChevronDown, Globe, Lock, Server, AlertTriangle } from 'lucide-react';
 import type { ServerMachine } from '../types';
 import ScanlineTear from './glitch/ScanlineTear';
+import { ncStyle } from '../lib/themeUtils';
 
 const MODELS_BY_PROVIDER: Record<string, string[]> = {
   claude: ['opus', 'sonnet', 'haiku'],
@@ -326,7 +327,7 @@ export default function CreateAgentDialog({
 
           <div>
             <label className="block text-xs font-bold text-nc-muted mb-1.5 font-mono tracking-wider">WORK_DIR</label>
-            <div className="px-3 py-2 border border-nc-border bg-nc-elevated text-sm font-mono text-nc-green" style={{ textShadow: '0 0 4px rgb(var(--nc-green) / 0.3)' }}>
+            <div className="px-3 py-2 border border-nc-border bg-nc-elevated text-sm font-mono text-nc-green" style={ncStyle({ textShadow: '0 0 4px rgb(var(--nc-green) / 0.3)' })}>
               {workDir}
             </div>
           </div>

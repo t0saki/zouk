@@ -37,6 +37,13 @@ export default function GlitchTransition({ active, duration = 600, onComplete, c
       return;
     }
 
+    // On non-Night-City themes, skip the glitch visual and complete instantly
+    const isNightCity = document.documentElement.getAttribute('data-theme') === 'night-city';
+    if (!isNightCity) {
+      onComplete?.();
+      return;
+    }
+
     setPhase('glitching');
     const steps = Math.floor(duration / 50);
     let step = 0;

@@ -3,6 +3,7 @@ import { X, Plus, Copy, Check, Trash2, Key, Server, Terminal } from 'lucide-reac
 import type { MachineApiKey, ServerMachine } from '../types';
 import * as api from '../lib/api';
 import ScanlineTear from './glitch/ScanlineTear';
+import { ncStyle } from '../lib/themeUtils';
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -111,7 +112,7 @@ export default function MachineSetupDialog({
               <Terminal size={12} className="text-nc-green" /> DAEMON_COMMAND
             </label>
             <div className="flex gap-2">
-              <code className="flex-1 px-3 py-2.5 border border-nc-border bg-nc-black text-xs font-mono text-nc-green break-all select-all" style={{ textShadow: '0 0 4px rgb(var(--nc-green) / 0.3)' }}>
+              <code className="flex-1 px-3 py-2.5 border border-nc-border bg-nc-black text-xs font-mono text-nc-green break-all select-all" style={ncStyle({ textShadow: '0 0 4px rgb(var(--nc-green) / 0.3)' })}>
                 {daemonCommand}
               </code>
               <CopyButton text={daemonCommand} />
@@ -155,7 +156,7 @@ export default function MachineSetupDialog({
                 </div>
               </div>
               <div className="flex gap-2 mt-2">
-                <code className="flex-1 px-3 py-2 border border-nc-border bg-nc-black text-xs font-mono text-nc-cyan break-all select-all" style={{ textShadow: '0 0 4px rgb(var(--nc-cyan) / 0.3)' }}>
+                <code className="flex-1 px-3 py-2 border border-nc-border bg-nc-black text-xs font-mono text-nc-cyan break-all select-all" style={ncStyle({ textShadow: '0 0 4px rgb(var(--nc-cyan) / 0.3)' })}>
                   {generatedKey}
                 </code>
                 <CopyButton text={generatedKey} />

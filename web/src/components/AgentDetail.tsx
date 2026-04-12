@@ -3,6 +3,7 @@ import { FileText, FolderOpen, Activity, Settings, Save, Square, Globe, Lock, Za
 import type { ServerAgent, Skill } from '../types';
 import { useApp } from '../store/AppContext';
 import ScanlineTear from './glitch/ScanlineTear';
+import { ncStyle } from '../lib/themeUtils';
 
 type Tab = 'instructions' | 'workspace' | 'activity' | 'settings';
 
@@ -216,7 +217,7 @@ function WorkspaceTab({ agent }: { agent: ServerAgent }) {
           </button>
           <span className="text-xs font-mono text-nc-muted truncate">{viewingFile}</span>
         </div>
-        <pre className="flex-1 overflow-auto p-3 border border-nc-border bg-nc-black text-xs font-mono text-nc-green whitespace-pre-wrap scrollbar-thin" style={{ textShadow: '0 0 4px rgb(var(--nc-green) / 0.3)' }}>
+        <pre className="flex-1 overflow-auto p-3 border border-nc-border bg-nc-black text-xs font-mono text-nc-green whitespace-pre-wrap scrollbar-thin" style={ncStyle({ textShadow: '0 0 4px rgb(var(--nc-green) / 0.3)' })}>
           {fileContent ?? 'Loading...'}
         </pre>
       </div>
@@ -465,7 +466,7 @@ function SettingsTab({
         {agent.workDir && (
           <div>
             <label className="block text-xs font-bold text-nc-muted mb-1.5 font-mono tracking-wider">WORK_DIR</label>
-            <div className="p-3 border border-nc-border bg-nc-elevated text-xs font-mono text-nc-green" style={{ textShadow: '0 0 4px rgb(var(--nc-green) / 0.3)' }}>
+            <div className="p-3 border border-nc-border bg-nc-elevated text-xs font-mono text-nc-green" style={ncStyle({ textShadow: '0 0 4px rgb(var(--nc-green) / 0.3)' })}>
               {agent.workDir}
             </div>
           </div>

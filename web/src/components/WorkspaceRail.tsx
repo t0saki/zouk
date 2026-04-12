@@ -1,6 +1,7 @@
 import { MessagesSquare, GitBranch, Cpu, Settings } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import ScanlineTear from './glitch/ScanlineTear';
+import { ncStyle } from '../lib/themeUtils';
 
 const hoverConfig = { trigger: 'hover' as const, minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 };
 
@@ -11,7 +12,7 @@ export default function WorkspaceRail() {
       <ScanlineTear>
         <div
           className="w-10 h-10 border border-nc-cyan bg-nc-cyan/10 font-display font-black text-lg flex items-center justify-center text-nc-cyan"
-          style={{ textShadow: '0 0 8px rgb(var(--nc-cyan) / 0.5)' }}
+          style={ncStyle({ textShadow: '0 0 8px rgb(var(--nc-cyan) / 0.5)' })}
         >
           Z
         </div>

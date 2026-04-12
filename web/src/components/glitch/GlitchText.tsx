@@ -9,6 +9,8 @@ interface Props {
 }
 
 export default function GlitchText({ children, className = '', as: Tag = 'span', intensity = 'medium' }: Props) {
+  const isNightCity = document.documentElement.getAttribute('data-theme') === 'night-city';
+
   const config = intensity === 'high'
     ? { minInterval: 1000, maxInterval: 3000, minSeverity: 0.5, maxSeverity: 1.0 }
     : intensity === 'low'
@@ -16,6 +18,11 @@ export default function GlitchText({ children, className = '', as: Tag = 'span',
     : { minInterval: 2000, maxInterval: 5000, minSeverity: 0.3, maxSeverity: 0.8 };
 
   const ref = useGlitch<HTMLElement>(config);
+
+  if (!isNightCity) {
+    return <Tag className={className}>{children}</Tag>;
+  }
+
   const textContent = typeof children === 'string' ? children : undefined;
 
   return (

@@ -3,6 +3,7 @@ import { MessageSquare, Bot, Paperclip } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import type { MessageRecord } from '../types';
 import { getAttachmentUrl } from '../lib/api';
+import { ncStyle } from '../lib/themeUtils';
 
 function formatTime(dateStr: string): string {
   const d = new Date(dateStr);
@@ -20,7 +21,7 @@ function parseMessageContent(content: string): React.ReactNode[] {
       parts.push(...parseInlineContent(content.slice(lastIndex, match.index), parts.length));
     }
     parts.push(
-      <pre key={`code-${parts.length}`} className="bg-nc-black border border-nc-green/30 text-nc-green p-3 my-2 font-mono text-xs overflow-x-auto" style={{ textShadow: '0 0 5px rgb(var(--nc-green) / 0.3)' }}>
+      <pre key={`code-${parts.length}`} className="bg-nc-black border border-nc-green/30 text-nc-green p-3 my-2 font-mono text-xs overflow-x-auto" style={ncStyle({ textShadow: '0 0 5px rgb(var(--nc-green) / 0.3)' })}>
         <code>{match[1].trim()}</code>
       </pre>
     );

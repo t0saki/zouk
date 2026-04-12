@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import GlitchTransition from './glitch/GlitchTransition';
 import ScanlineTear from './glitch/ScanlineTear';
 import { themes, type ThemeId } from '../themes';
+import { ncStyle, isNightCity } from '../lib/themeUtils';
 
 const GLITCH_CHARS = '!<>-_\\/[]{}#$%^&*=+|;:0123456789ABCDEF';
 
@@ -35,7 +36,7 @@ function ScrambleTitle() {
   return (
     <h1
       className="font-display font-black text-3xl text-nc-cyan tracking-[0.2em] text-center mb-1"
-      style={{ textShadow: '0 0 20px rgb(var(--nc-cyan) / 0.4), 0 0 60px rgb(var(--nc-cyan) / 0.1)' }}
+      style={ncStyle({ textShadow: '0 0 20px rgb(var(--nc-cyan) / 0.4), 0 0 60px rgb(var(--nc-cyan) / 0.1)' })}
     >
       {text}
     </h1>
@@ -78,9 +79,11 @@ export default function LoginScreen() {
     <div className="h-screen w-screen flex items-center justify-center bg-nc-black font-body cyber-scanlines">
       <GlitchTransition active={glitchActive} duration={500} onComplete={handleGlitchComplete} />
 
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgb(var(--nc-cyan) / 0.03) 2px, rgb(var(--nc-cyan) / 0.03) 4px)',
-      }} />
+      {isNightCity() && (
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgb(var(--nc-cyan) / 0.03) 2px, rgb(var(--nc-cyan) / 0.03) 4px)',
+        }} />
+      )}
 
       <div className="relative z-10 w-full max-w-sm">
         <div className="cyber-panel p-8 cyber-bevel">

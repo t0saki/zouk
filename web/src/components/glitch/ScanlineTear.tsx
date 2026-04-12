@@ -10,6 +10,8 @@ interface ScanlineTearProps {
 }
 
 export default function ScanlineTear({ children, className = '', config, tearContent }: ScanlineTearProps) {
+  const isNightCity = document.documentElement.getAttribute('data-theme') === 'night-city';
+
   const ref = useGlitch<HTMLDivElement>({
     minInterval: 2000,
     maxInterval: 5000,
@@ -17,6 +19,10 @@ export default function ScanlineTear({ children, className = '', config, tearCon
     maxSeverity: 1.0,
     ...config,
   });
+
+  if (!isNightCity) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
     <div ref={ref} className={`scanline-tear ${className}`}>
