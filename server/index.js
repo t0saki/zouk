@@ -98,6 +98,16 @@ function now() {
 }
 
 function findOrCreateChannel(name, type = "channel") {
+  if (type === "dm") {
+    return {
+      id: `dm-${name}`,
+      name,
+      description: "",
+      type: "dm",
+      members: [],
+    };
+  }
+
   let ch = store.channels.find((c) => c.name === name);
   if (!ch) {
     ch = { id: `ch-${uuidv4().substring(0, 8)}`, name, description: "", type: type || "channel", members: [] };
@@ -185,11 +195,17 @@ function deliverToAllAgents(message, excludeAgent = null) {
   const hasSpecificMention = mentions.some((m) =>
     Object.values(store.agents).some((a) => a.name === m || a.displayName === m)
   );
+  const dmPeer = message.channelType === "dm" ? message.channelName.replace(/^dm-/, "") : null;
 
-  for (const [agentId, ws] of daemonSockets) {
-    if (agentId === excludeAgent) continue;
+  for (const agentId of Object.keys(store.agents)) {
+    if (excludeAgent && agentId === excludeAgent) continue;
     const agent = store.agents[agentId];
     if (!agent || agent.status !== "active") continue;
+
+    if (dmPeer) {
+      const isDmTarget = agent.name === dmPeer || agent.displayName === dmPeer;
+      if (!isDmTarget) continue;
+    }
 
     // If message mentions specific agent(s), only deliver to them
     if (hasSpecificMention) {
@@ -260,11 +276,13 @@ app.get("/internal/agent/:agentId/receive", (req, res) => {
 
 // list_server
 app.get("/internal/agent/:agentId/server", (req, res) => {
-  const channels = store.channels.map((ch) => ({
-    name: ch.name,
-    description: ch.description || "",
-    joined: true,
-  }));
+  const channels = store.channels
+    .filter((ch) => (ch.type || "channel") === "channel")
+    .map((ch) => ({
+      name: ch.name,
+      description: ch.description || "",
+      joined: true,
+    }));
   const agents = Object.entries(store.agents).map(([id, a]) => ({
     name: a.name || id,
     status: a.status || "inactive",
@@ -590,7 +608,9 @@ app.get("/api/messages", (req, res) => {
 
 // Get channels
 app.get("/api/channels", (req, res) => {
-  res.json({ channels: store.channels });
+  res.json({
+    channels: store.channels.filter((ch) => (ch.type || "channel") === "channel"),
+  });
 });
 
 // Create channel
@@ -1015,7 +1035,7 @@ function handleWebConnection(ws) {
   // Send initial state
   ws.send(JSON.stringify({
     type: "init",
-    channels: store.channels,
+    channels: store.channels.filter((ch) => (ch.type || "channel") === "channel"),
     agents: Object.entries(store.agents).map(([id, a]) => ({ id, ...a })),
     humans: store.humans,
     configs: agentConfigs,
