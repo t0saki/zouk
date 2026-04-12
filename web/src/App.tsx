@@ -14,6 +14,12 @@ import AgentsView from './components/AgentPanel';
 import LoginScreen from './components/LoginScreen';
 import * as api from './lib/api';
 
+function GoogleAuthSync() {
+  const { setHasGoogleAuth } = useApp();
+  useEffect(() => { setHasGoogleAuth(true); }, [setHasGoogleAuth]);
+  return null;
+}
+
 function AppShell() {
   const { theme, viewMode, sidebarOpen, isLoggedIn } = useApp();
 
@@ -77,6 +83,7 @@ function AppWithAuth() {
     return (
       <GoogleOAuthProvider clientId={clientId}>
         <AppProvider>
+          <GoogleAuthSync />
           <AppShell />
         </AppProvider>
       </GoogleOAuthProvider>
