@@ -83,7 +83,7 @@ export default function MachineSetupDialog({
 
   const daemonCommand = generatedKey
     ? `npx @slock-ai/daemon@latest --server-url ${serverUrl} --api-key ${generatedKey}`
-    : `npx @slock-ai/daemon@latest --server-url ${serverUrl} --api-key 1007`;
+    : `npx @slock-ai/daemon@latest --server-url ${serverUrl} --api-key <api_key>`;
 
   return (
     <div
