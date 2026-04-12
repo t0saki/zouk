@@ -69,7 +69,8 @@ export default function CreateAgentDialog({
   const models = MODELS_BY_PROVIDER[runtime] || [];
 
   useEffect(() => {
-    setModel(DEFAULT_MODELS[runtime] || models[0] || '');
+    const runtimeModels = MODELS_BY_PROVIDER[runtime] || [];
+    setModel(DEFAULT_MODELS[runtime] || runtimeModels[0] || '');
   }, [runtime]);
 
   const canSubmit = name.trim().length > 0;

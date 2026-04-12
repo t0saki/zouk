@@ -20,6 +20,22 @@ const PROVIDER_LABELS: Record<string, string> = {
   kimi: 'Kimi',
 };
 
+const activityColors: Record<string, string> = {
+  thinking: 'bg-nb-yellow animate-pulse',
+  working: 'bg-nb-orange animate-pulse',
+  online: 'bg-nb-green',
+  offline: 'bg-nb-gray-400',
+  error: 'bg-nb-red',
+};
+
+const activityLabels: Record<string, string> = {
+  thinking: 'Thinking',
+  working: 'Working',
+  online: 'Online',
+  offline: 'Offline',
+  error: 'Error',
+};
+
 const AVAILABLE_SKILLS: Skill[] = [
   { id: 's1', name: 'Code Review', description: 'Reviews code for quality and security issues' },
   { id: 's2', name: 'Bug Triage', description: 'Analyzes and categorizes bug reports' },
@@ -332,22 +348,6 @@ export default function AgentDetail({
   const [tab, setTab] = useState<Tab>('instructions');
   const activity = agent.activity || 'offline';
   const isActive = agent.status === 'active';
-
-  const activityColors: Record<string, string> = {
-    thinking: 'bg-nb-yellow animate-pulse',
-    working: 'bg-nb-orange animate-pulse',
-    online: 'bg-nb-green',
-    offline: 'bg-nb-gray-400',
-    error: 'bg-nb-red',
-  };
-
-  const activityLabels: Record<string, string> = {
-    thinking: 'Thinking',
-    working: 'Working',
-    online: 'Online',
-    offline: 'Offline',
-    error: 'Error',
-  };
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-nb-white dark:bg-dark-surface">

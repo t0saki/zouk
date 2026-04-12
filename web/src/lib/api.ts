@@ -97,7 +97,7 @@ export async function deleteAgent(agentId: string): Promise<void> {
   if (!res.ok) throw new Error(`Failed to delete agent: ${res.status}`);
 }
 
-export async function updateAgentConfig(agentId: string, updates: Partial<AgentConfig>): Promise<void> {
+export async function updateAgentConfig(agentId: string, updates: Record<string, unknown>): Promise<void> {
   const url = `${getBaseUrl()}/api/agents/${agentId}/config`;
   const res = await fetch(url, {
     method: 'PUT',

@@ -69,6 +69,11 @@ export interface WsMachineConnectedEvent {
   machine: ServerMachine;
 }
 
+export interface WsMachineUpdatedEvent {
+  type: 'machine:updated';
+  machine: ServerMachine;
+}
+
 export interface WsMachineDisconnectedEvent {
   type: 'machine:disconnected';
   machineId: string;
@@ -84,6 +89,7 @@ export type WsEvent =
   | WsAgentStartedEvent
   | WsConfigUpdatedEvent
   | WsMachineConnectedEvent
+  | WsMachineUpdatedEvent
   | WsMachineDisconnectedEvent
   | { type: string; [key: string]: unknown };
 
