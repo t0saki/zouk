@@ -1,12 +1,45 @@
-import { MessagesSquare, GitBranch, Cpu, Settings } from 'lucide-react';
+import { Home, MessagesSquare, GitBranch, Cpu, Settings } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import ScanlineTear from './glitch/ScanlineTear';
-import { ncStyle } from '../lib/themeUtils';
+import { isNightCity, ncStyle } from '../lib/themeUtils';
 
 const hoverConfig = { trigger: 'hover' as const, minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 };
 
 export default function WorkspaceRail() {
   const { setViewMode, setSettingsOpen, viewMode } = useApp();
+  const nc = isNightCity();
+
+  if (!nc) {
+    // Neo Brutalism rail — dark bg, yellow active, thick borders
+    return (
+      <div className="w-[72px] h-full flex flex-col items-center py-4 gap-3" style={{ background: '#2E2A26', borderRight: '3px solid #1A1A1A' }}>
+        <div className="w-10 h-10 border-2 font-display font-black text-lg flex items-center justify-center" style={{ background: '#facc15', borderColor: '#facc15', color: '#1A1A1A' }}>
+          S
+        </div>
+        <div className="w-8 my-1" style={{ borderTop: '2px solid #68645A' }} />
+
+        <button onClick={() => setViewMode('channel')} className={`w-10 h-10 border-2 flex items-center justify-center transition-all duration-100 ${viewMode === 'channel' || viewMode === 'dm' ? 'shadow-[2px_2px_0px_0px_#1A1A1A]' : ''}`} style={viewMode === 'channel' || viewMode === 'dm' ? { background: '#facc15', color: '#1A1A1A', borderColor: '#1A1A1A' } : { color: '#C8C4BA', borderColor: '#68645A' }} title="Home">
+          <Home size={20} />
+        </button>
+
+        <button onClick={() => setViewMode('threads')} className={`w-10 h-10 border-2 flex items-center justify-center transition-all duration-100 ${viewMode === 'threads' ? 'shadow-[2px_2px_0px_0px_#1A1A1A]' : ''}`} style={viewMode === 'threads' ? { background: '#0066FF', color: '#FAFAF5', borderColor: '#1A1A1A' } : { color: '#C8C4BA', borderColor: '#68645A' }} title="Threads">
+          <MessagesSquare size={20} />
+        </button>
+
+        <button onClick={() => setViewMode('agents')} className={`w-10 h-10 border-2 flex items-center justify-center transition-all duration-100 ${viewMode === 'agents' ? 'shadow-[2px_2px_0px_0px_#1A1A1A]' : ''}`} style={viewMode === 'agents' ? { background: '#00CC66', color: '#1A1A1A', borderColor: '#1A1A1A' } : { color: '#C8C4BA', borderColor: '#68645A' }} title="Agents">
+          <Cpu size={20} />
+        </button>
+
+        <div className="flex-1" />
+
+        <button onClick={() => setSettingsOpen(true)} className="w-10 h-10 border-2 flex items-center justify-center transition-all duration-100" style={{ color: '#C8C4BA', borderColor: '#68645A' }} title="Settings">
+          <Settings size={20} />
+        </button>
+      </div>
+    );
+  }
+
+  // Night City rail — cyberpunk styling
   return (
     <div className="w-[72px] h-full bg-nc-deep border-r border-nc-border flex flex-col items-center py-4 gap-3">
       <ScanlineTear>
