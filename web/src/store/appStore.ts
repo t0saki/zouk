@@ -309,7 +309,7 @@ export function useAppStore() {
     }
   }, [addToast]);
 
-  const updateAgentConfigAction = useCallback(async (agentId: string, updates: Partial<import('../types').AgentConfig>) => {
+  const updateAgentConfigAction = useCallback(async (agentId: string, updates: Partial<ServerAgent>) => {
     try {
       await api.updateAgentConfig(agentId, updates);
       addToast('Agent config updated', 'info');

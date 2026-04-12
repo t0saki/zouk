@@ -26,10 +26,66 @@ export interface ServerAgent {
   name: string;
   displayName?: string;
   description?: string;
+  instructions?: string;
   status: 'active' | 'inactive';
   activity?: AgentActivity;
   activityDetail?: string;
   entries?: AgentEntry[];
+  runtime?: string;
+  model?: string;
+  visibility?: 'workspace' | 'private';
+  maxConcurrentTasks?: number;
+  skills?: AgentSkill[];
+  channels?: string[];
+  workDir?: string;
+  archivedAt?: string;
+}
+
+export interface AgentSkill {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface RuntimeDevice {
+  id: string;
+  name: string;
+  runtimeMode: 'local' | 'cloud';
+  provider: string;
+  status: 'online' | 'offline';
+  deviceInfo?: string;
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  description?: string;
+  content?: string;
+}
+
+export interface AgentTask {
+  id: string;
+  agentId: string;
+  status: 'queued' | 'dispatched' | 'running' | 'completed' | 'failed' | 'cancelled';
+  priority?: number;
+  error?: string;
+  createdAt?: string;
+  completedAt?: string;
+}
+
+export interface MachineApiKey {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  createdAt: string;
+  lastUsedAt?: string;
+}
+
+export interface RuntimeConfig {
+  provider: string;
+  apiKey?: string;
+  serverUrl?: string;
+  envVars?: Record<string, string>;
 }
 
 export type AgentActivity = 'thinking' | 'working' | 'online' | 'offline' | 'error';

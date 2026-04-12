@@ -7,11 +7,13 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { URL } = require("url");
+const crypto = require("crypto");
 
 const PORT = process.env.PORT || 7777;
 const PUBLIC_URL = process.env.PUBLIC_URL || `http://localhost:${PORT}`;
 const CONFIG_DIR = path.join(__dirname, "..", "data");
 const AGENT_CONFIGS_FILE = path.join(CONFIG_DIR, "agent-configs.json");
+const MACHINE_KEYS_FILE = path.join(CONFIG_DIR, "machine-keys.json");
 
 // ─── Agent config persistence ────────────────────────────────────
 
@@ -33,6 +35,36 @@ function saveAgentConfigs(configs) {
 }
 
 const agentConfigs = loadAgentConfigs(); // persistent agent configurations
+
+// ─── Machine API key persistence ─────────────────────────────────
+
+function loadMachineKeys() {
+  try {
+    if (fs.existsSync(MACHINE_KEYS_FILE)) {
+      return JSON.parse(fs.readFileSync(MACHINE_KEYS_FILE, "utf8"));
+    }
+  } catch (e) {
+    console.error("[config] Failed to load machine keys:", e.message);
+  }
+  return [];
+}
+
+function saveMachineKeys(keys) {
+  fs.writeFileSync(MACHINE_KEYS_FILE, JSON.stringify(keys, null, 2), "utf8");
+}
+
+function generateApiKey() {
+  return "sk_machine_" + crypto.randomBytes(32).toString("hex");
+}
+
+function validateApiKey(key) {
+  if (!key) return false;
+  // Allow "test" key in development
+  if (key === "test" && !process.env.NODE_ENV?.startsWith("prod")) return true;
+  return machineKeys.some((k) => k.rawKey === key && !k.revokedAt);
+}
+
+const machineKeys = loadMachineKeys(); // persistent machine API keys
 
 // ─── In-memory store ──────────────────────────────────────────────
 
@@ -639,6 +671,63 @@ app.delete("/api/agents/:id", (req, res) => {
   res.json({ success: true });
 });
 
+// ─── Machine API key management ─────────────────────────────────
+
+// List machine API keys (masked)
+app.get("/api/machine-keys", (req, res) => {
+  const keys = machineKeys
+    .filter((k) => !k.revokedAt)
+    .map((k) => ({
+      id: k.id,
+      name: k.name,
+      keyPrefix: k.rawKey.substring(0, 18),
+      createdAt: k.createdAt,
+      lastUsedAt: k.lastUsedAt,
+    }));
+  res.json({ keys });
+});
+
+// Generate a new machine API key
+app.post("/api/machine-keys", (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: "Name is required" });
+
+  const rawKey = generateApiKey();
+  const keyRecord = {
+    id: `mk-${uuidv4().substring(0, 8)}`,
+    name,
+    rawKey,
+    createdAt: now(),
+    lastUsedAt: null,
+    revokedAt: null,
+  };
+  machineKeys.push(keyRecord);
+  saveMachineKeys(machineKeys);
+  console.log(`[keys] Generated machine key "${name}" (${rawKey.substring(0, 18)}...)`);
+
+  res.json({
+    key: {
+      id: keyRecord.id,
+      name: keyRecord.name,
+      keyPrefix: rawKey.substring(0, 18),
+      createdAt: keyRecord.createdAt,
+      lastUsedAt: keyRecord.lastUsedAt,
+    },
+    rawKey,
+  });
+});
+
+// Revoke a machine API key
+app.delete("/api/machine-keys/:id", (req, res) => {
+  const { id } = req.params;
+  const key = machineKeys.find((k) => k.id === id);
+  if (!key) return res.status(404).json({ error: "Key not found" });
+  key.revokedAt = now();
+  saveMachineKeys(machineKeys);
+  console.log(`[keys] Revoked machine key "${key.name}"`);
+  res.json({ success: true });
+});
+
 // ─── Agent lifecycle ─────────────────────────────────────────────
 
 function startAgentOnDaemon(id, config) {
@@ -742,9 +831,22 @@ server.on("upgrade", (request, socket, head) => {
   const parsed = new URL(request.url, `http://${request.headers.host}`);
 
   if (parsed.pathname === "/daemon/connect") {
-    // Daemon WebSocket connection
+    // Daemon WebSocket connection — validate API key
+    const apiKey = parsed.searchParams.get("key");
+    if (!validateApiKey(apiKey)) {
+      console.log(`[daemon] Rejected connection: invalid API key (${apiKey?.substring(0, 12)}...)`);
+      socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+      socket.destroy();
+      return;
+    }
+    // Track key usage
+    const keyRecord = machineKeys.find((k) => k.rawKey === apiKey);
+    if (keyRecord) {
+      keyRecord.lastUsedAt = now();
+      saveMachineKeys(machineKeys);
+    }
     wss.handleUpgrade(request, socket, head, (ws) => {
-      handleDaemonConnection(ws, parsed.searchParams.get("key"));
+      handleDaemonConnection(ws, apiKey);
     });
   } else if (parsed.pathname === "/ws") {
     // Web UI WebSocket connection
@@ -1035,5 +1137,9 @@ server.listen(PORT, () => {
   console.log(`  Web UI endpoint:  ws://localhost:${PORT}/ws`);
   console.log(`  REST API:         ${PUBLIC_URL}/internal/agent/{id}/...`);
   console.log(`\nTo connect a daemon:`);
-  console.log(`  npx @slock-ai/daemon@latest --server-url ${PUBLIC_URL} --api-key test\n`);
+  console.log(`  npx @slock-ai/daemon@latest --server-url ${PUBLIC_URL} --api-key <YOUR_API_KEY>`);
+  console.log(`\n  Generate keys via POST /api/machine-keys or the Machine Setup UI.`);
+  if (!process.env.NODE_ENV?.startsWith("prod")) {
+    console.log(`  Dev mode: key "test" is accepted without registration.\n`);
+  }
 });
