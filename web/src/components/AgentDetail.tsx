@@ -78,7 +78,7 @@ function InstructionsTab({
         {isDirty && (
           <button
             onClick={() => onUpdate({ instructions })}
-            className="flex items-center gap-1 px-3 py-1.5 border border-nc-cyan bg-nc-cyan/10 text-sm font-bold text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan transition-all font-mono"
+            className="cyber-btn glitch-hover flex items-center gap-1 px-3 py-1.5 border border-nc-cyan bg-nc-cyan/10 text-sm font-bold text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan font-mono"
           >
             <Save size={12} /> SAVE
           </button>
@@ -98,7 +98,7 @@ function InstructionsTab({
         </div>
         <button
           onClick={() => setShowPicker(!showPicker)}
-          className="flex items-center gap-1 px-3 py-1.5 border border-nc-yellow bg-nc-yellow/10 text-sm font-bold text-nc-yellow hover:bg-nc-yellow/20 hover:shadow-nc-yellow transition-all font-mono"
+          className="cyber-btn glitch-hover flex items-center gap-1 px-3 py-1.5 border border-nc-yellow bg-nc-yellow/10 text-sm font-bold text-nc-yellow hover:bg-nc-yellow/20 hover:shadow-nc-yellow font-mono"
         >
           <Zap size={12} /> ADD_SKILL
         </button>
@@ -205,7 +205,7 @@ function WorkspaceTab({ agent }: { agent: ServerAgent }) {
         <div className="flex items-center gap-2 mb-3">
           <button
             onClick={handleBack}
-            className="w-7 h-7 border border-nc-border bg-nc-panel flex items-center justify-center hover:bg-nc-elevated hover:border-nc-cyan transition-all text-nc-muted hover:text-nc-cyan"
+            className="cyber-btn w-7 h-7 border border-nc-border bg-nc-panel flex items-center justify-center hover:bg-nc-elevated hover:border-nc-cyan text-nc-muted hover:text-nc-cyan"
           >
             <ArrowLeft size={14} />
           </button>
@@ -225,7 +225,7 @@ function WorkspaceTab({ agent }: { agent: ServerAgent }) {
           {ws?.dirPath && (
             <button
               onClick={handleBack}
-              className="w-7 h-7 border border-nc-border bg-nc-panel flex items-center justify-center hover:bg-nc-elevated hover:border-nc-cyan transition-all text-nc-muted hover:text-nc-cyan"
+              className="cyber-btn w-7 h-7 border border-nc-border bg-nc-panel flex items-center justify-center hover:bg-nc-elevated hover:border-nc-cyan text-nc-muted hover:text-nc-cyan"
             >
               <ArrowLeft size={14} />
             </button>
@@ -236,7 +236,7 @@ function WorkspaceTab({ agent }: { agent: ServerAgent }) {
         </div>
         <button
           onClick={() => requestWorkspaceFiles(agent.id, ws?.dirPath)}
-          className="w-7 h-7 border border-nc-border bg-nc-panel flex items-center justify-center hover:bg-nc-elevated hover:border-nc-cyan transition-all text-nc-muted hover:text-nc-cyan"
+          className="cyber-btn w-7 h-7 border border-nc-border bg-nc-panel flex items-center justify-center hover:bg-nc-elevated hover:border-nc-cyan text-nc-muted hover:text-nc-cyan"
           title="Refresh"
         >
           <RefreshCw size={12} />
@@ -375,7 +375,7 @@ function SettingsTab({
             <button
               type="button"
               onClick={() => setVisibility('workspace')}
-              className={`flex items-center gap-2 border px-3 py-2.5 text-left transition-all ${
+              className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
                 visibility === 'workspace'
                   ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
                   : 'border-nc-border hover:bg-nc-elevated'
@@ -390,7 +390,7 @@ function SettingsTab({
             <button
               type="button"
               onClick={() => setVisibility('private')}
-              className={`flex items-center gap-2 border px-3 py-2.5 text-left transition-all ${
+              className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
                 visibility === 'private'
                   ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
                   : 'border-nc-border hover:bg-nc-elevated'
@@ -466,7 +466,7 @@ function SettingsTab({
           {isDirty && (
             <button
               onClick={() => onUpdate({ displayName, description, visibility, maxConcurrentTasks: maxConcurrent })}
-              className="flex items-center gap-1 px-4 py-2 border border-nc-cyan bg-nc-cyan/10 text-sm font-bold text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan transition-all font-mono"
+              className="cyber-btn glitch-hover flex items-center gap-1 px-4 py-2 border border-nc-cyan bg-nc-cyan/10 text-sm font-bold text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan font-mono"
             >
               <Save size={12} /> SAVE
             </button>
@@ -474,7 +474,7 @@ function SettingsTab({
           {agent.status === 'active' && (
             <button
               onClick={onStop}
-              className="flex items-center gap-1 px-4 py-2 border border-nc-red bg-nc-red/10 text-sm font-bold text-nc-red hover:bg-nc-red/20 hover:shadow-nc-red transition-all ml-auto font-mono"
+              className="cyber-btn glitch-hover flex items-center gap-1 px-4 py-2 border border-nc-red bg-nc-red/10 text-sm font-bold text-nc-red hover:bg-nc-red/20 hover:shadow-nc-red ml-auto font-mono"
             >
               <Square size={12} /> STOP_AGENT
             </button>

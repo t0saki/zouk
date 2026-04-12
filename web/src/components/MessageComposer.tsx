@@ -145,7 +145,7 @@ export default function MessageComposer({ threadTarget, placeholder }: { threadT
         </div>
       )}
 
-      <div className="flex items-stretch border border-nc-border bg-nc-surface transition-all focus-within:border-nc-cyan focus-within:shadow-nc-cyan overflow-hidden">
+      <div className="flex items-stretch border border-nc-border bg-nc-surface focus-within:border-nc-cyan focus-within:shadow-nc-cyan" style={{ clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))' }}>
         <textarea
           ref={textareaRef}
           value={text}
@@ -161,7 +161,7 @@ export default function MessageComposer({ threadTarget, placeholder }: { threadT
           onClick={handleSubmit}
           disabled={!text.trim()}
           className={`
-            flex items-center justify-center w-11 border-l border-nc-border transition-all flex-shrink-0 self-stretch glitch-text
+            cyber-btn flex items-center justify-center w-11 border-l border-nc-border flex-shrink-0 self-stretch glitch-text
             ${text.trim()
               ? 'bg-nc-cyan/15 text-nc-cyan hover:bg-nc-cyan/25'
               : 'bg-nc-elevated text-nc-muted cursor-not-allowed'

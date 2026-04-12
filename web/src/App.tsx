@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AppProvider, useApp } from './store/AppContext';
 import WorkspaceRail from './components/WorkspaceRail';
 import ChannelSidebar from './components/ChannelSidebar';
@@ -10,6 +12,13 @@ import ToastContainer from './components/ToastContainer';
 import ThreadsView from './components/ThreadsView';
 import AgentsView from './components/AgentPanel';
 import LoginScreen from './components/LoginScreen';
+import * as api from './lib/api';
+
+function GoogleAuthSync() {
+  const { setHasGoogleAuth } = useApp();
+  useEffect(() => { setHasGoogleAuth(true); }, [setHasGoogleAuth]);
+  return null;
+}
 
 function AppShell() {
   const { viewMode, sidebarOpen, isLoggedIn } = useApp();
@@ -51,10 +60,39 @@ function AppShell() {
   );
 }
 
-export default function App() {
+function AppWithAuth() {
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    api.getAuthConfig()
+      .then(({ googleClientId }) => {
+        setClientId(googleClientId || null);
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
+  }, []);
+
+  if (!loaded) return null;
+
+  if (clientId) {
+    return (
+      <GoogleOAuthProvider clientId={clientId}>
+        <AppProvider>
+          <GoogleAuthSync />
+          <AppShell />
+        </AppProvider>
+      </GoogleOAuthProvider>
+    );
+  }
+
   return (
     <AppProvider>
       <AppShell />
     </AppProvider>
   );
+}
+
+export default function App() {
+  return <AppWithAuth />;
 }

@@ -71,7 +71,7 @@ export default function SettingsModal() {
             </h3>
             <button
               onClick={() => setSettingsOpen(false)}
-              className="w-8 h-8 border border-nc-border flex items-center justify-center text-nc-muted hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 transition-all"
+              className="cyber-btn w-8 h-8 border border-nc-border flex items-center justify-center text-nc-muted hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10"
             >
               <X size={16} />
             </button>
@@ -105,7 +105,7 @@ export default function SettingsModal() {
                       updateProfile(displayName.trim());
                     }
                   }}
-                  className="cyber-btn px-4 py-2 bg-nc-cyan/10 border border-nc-cyan/50 text-nc-cyan font-bold text-sm tracking-wider"
+                  className="cyber-btn glitch-hover px-4 py-2 bg-nc-cyan/10 border border-nc-cyan/50 text-nc-cyan font-bold text-sm tracking-wider"
                 >
                   Update Profile
                 </button>
@@ -113,7 +113,7 @@ export default function SettingsModal() {
                 <div className="pt-4 border-t border-nc-border">
                   <button
                     onClick={() => { setSettingsOpen(false); }}
-                    className="cyber-btn px-4 py-2 bg-nc-red/10 border border-nc-red/50 text-nc-red font-bold text-sm tracking-wider"
+                    className="cyber-btn glitch-hover px-4 py-2 bg-nc-red/10 border border-nc-red/50 text-nc-red font-bold text-sm tracking-wider"
                   >
                     Disconnect
                   </button>
@@ -128,7 +128,7 @@ export default function SettingsModal() {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => handleThemeChange('dark')}
-                      className={`flex items-center gap-3 p-4 border transition-all ${
+                      className={`cyber-btn glitch-hover flex items-center gap-3 p-4 border ${
                         theme === 'dark'
                           ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
                           : 'border-nc-border hover:border-nc-cyan/50'
@@ -145,7 +145,7 @@ export default function SettingsModal() {
 
                     <button
                       onClick={() => handleThemeChange('light')}
-                      className={`flex items-center gap-3 p-4 border transition-all ${
+                      className={`cyber-btn glitch-hover flex items-center gap-3 p-4 border ${
                         theme === 'light'
                           ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
                           : 'border-nc-border hover:border-nc-cyan/50'

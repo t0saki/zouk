@@ -15,7 +15,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="w-7 h-7 flex items-center justify-center border border-nc-border bg-nc-panel hover:bg-nc-elevated hover:border-nc-cyan transition-all shrink-0 text-nc-muted hover:text-nc-cyan"
+      className="cyber-btn w-7 h-7 flex items-center justify-center border border-nc-border bg-nc-panel hover:bg-nc-elevated hover:border-nc-cyan shrink-0 text-nc-muted hover:text-nc-cyan"
       title="Copy"
     >
       {copied ? <Check size={12} className="text-nc-green" /> : <Copy size={12} />}
@@ -94,7 +94,7 @@ export default function MachineSetupDialog({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 transition-all text-nc-muted"
+            className="cyber-btn w-8 h-8 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 text-nc-muted"
           >
             <X size={16} />
           </button>
@@ -131,7 +131,7 @@ export default function MachineSetupDialog({
               <button
                 onClick={handleGenerate}
                 disabled={!newKeyName.trim() || loading}
-                className="flex items-center gap-1 px-3 py-2 border border-nc-green bg-nc-green/10 text-sm font-bold text-nc-green hover:bg-nc-green/20 hover:shadow-nc-green transition-all disabled:opacity-50 disabled:cursor-not-allowed font-mono"
+                className="cyber-btn glitch-hover flex items-center gap-1 px-3 py-2 border border-nc-green bg-nc-green/10 text-sm font-bold text-nc-green hover:bg-nc-green/20 hover:shadow-nc-green disabled:opacity-50 disabled:cursor-not-allowed font-mono"
               >
                 <Plus size={12} /> GENERATE
               </button>
@@ -180,7 +180,7 @@ export default function MachineSetupDialog({
                     </span>
                     <button
                       onClick={() => handleRevoke(key.id)}
-                      className="w-7 h-7 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 transition-all shrink-0 text-nc-muted"
+                      className="cyber-btn w-7 h-7 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 shrink-0 text-nc-muted"
                       title="Revoke key"
                     >
                       <Trash2 size={12} />
@@ -233,7 +233,7 @@ export default function MachineSetupDialog({
           <div className="pt-3 border-t border-nc-border">
             <button
               onClick={onClose}
-              className="w-full py-2.5 border border-nc-border text-sm font-bold text-nc-muted hover:bg-nc-elevated hover:text-nc-text-bright transition-all font-mono"
+              className="cyber-btn-lg w-full py-2.5 border border-nc-border text-sm font-bold text-nc-muted hover:bg-nc-elevated hover:text-nc-text-bright font-mono"
             >
               CLOSE
             </button>

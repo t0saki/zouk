@@ -58,7 +58,7 @@ function AgentListItem({
         </div>
       </div>
       {agent.archivedAt && (
-        <span className="text-2xs font-bold text-nc-muted bg-nc-elevated px-1.5 py-0.5 border border-nc-border font-mono">
+        <span className="status-chip-sm tone-neutral font-mono">
           ARCHIVED
         </span>
       )}
@@ -97,10 +97,10 @@ function ConfigStartButton({
     <button
       onClick={() => !isRunning && !isStarting && onStart()}
       disabled={isRunning || isStarting}
-      className={`flex items-center gap-1 px-2.5 py-1 border text-2xs font-bold font-mono transition-all ${
+      className={`cyber-btn flex items-center gap-1 px-2.5 py-1 border text-2xs font-bold font-mono ${
         isRunning
           ? 'border-nc-border bg-nc-elevated text-nc-muted cursor-not-allowed'
-          : 'border-nc-green bg-nc-green/10 text-nc-green hover:bg-nc-green/20 hover:shadow-nc-green active:translate-x-[1px] active:translate-y-[1px]'
+          : 'border-nc-green bg-nc-green/10 text-nc-green hover:bg-nc-green/20 hover:shadow-nc-green'
       }`}
     >
       {isStarting ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} />}
@@ -184,7 +184,7 @@ export default function AgentsView() {
             )}
             <button
               onClick={() => setShowCreate(true)}
-              className="w-7 h-7 flex items-center justify-center border border-nc-cyan bg-nc-cyan/10 text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan transition-all"
+              className="cyber-btn w-7 h-7 flex items-center justify-center border border-nc-cyan bg-nc-cyan/10 text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan"
               title="Create agent"
             >
               <Plus size={14} />
@@ -280,7 +280,7 @@ export default function AgentsView() {
               {!showArchived && (
                 <button
                   onClick={() => setShowCreate(true)}
-                  className="mt-3 flex items-center gap-1 px-3 py-1.5 border border-nc-cyan bg-nc-cyan/10 text-sm font-bold text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan transition-all font-mono"
+                  className="cyber-btn glitch-hover mt-3 flex items-center gap-1 px-3 py-1.5 border border-nc-cyan bg-nc-cyan/10 text-sm font-bold text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan font-mono"
                 >
                   <Plus size={12} /> CREATE_AGENT
                 </button>
@@ -308,7 +308,7 @@ export default function AgentsView() {
             </p>
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1.5 px-4 py-2 border border-nc-cyan bg-nc-cyan/10 text-sm font-bold text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan transition-all font-mono"
+              className="cyber-btn-lg glitch-hover flex items-center gap-1.5 px-4 py-2 border border-nc-cyan bg-nc-cyan/10 text-sm font-bold text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan font-mono"
             >
               <Plus size={14} /> CREATE_AGENT
             </button>

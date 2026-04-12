@@ -26,7 +26,7 @@ export default function WorkspaceRail() {
       <button
         onClick={() => setViewMode('channel')}
         className={`
-          w-10 h-10 border flex items-center justify-center transition-all duration-150
+          cyber-btn w-10 h-10 border flex items-center justify-center
           ${viewMode === 'channel' || viewMode === 'dm'
             ? 'bg-nc-cyan/15 text-nc-cyan border-nc-cyan shadow-nc-cyan'
             : 'text-nc-muted border-nc-border hover:text-nc-cyan hover:border-nc-cyan/50'}
@@ -39,7 +39,7 @@ export default function WorkspaceRail() {
       <button
         onClick={() => setViewMode('threads')}
         className={`
-          w-10 h-10 border flex items-center justify-center transition-all duration-150
+          cyber-btn w-10 h-10 border flex items-center justify-center
           ${viewMode === 'threads'
             ? 'bg-nc-magenta/15 text-nc-magenta border-nc-magenta shadow-nc-magenta'
             : 'text-nc-muted border-nc-border hover:text-nc-magenta hover:border-nc-magenta/50'}
@@ -52,7 +52,7 @@ export default function WorkspaceRail() {
       <button
         onClick={() => setViewMode('agents')}
         className={`
-          w-10 h-10 border flex items-center justify-center transition-all duration-150
+          cyber-btn w-10 h-10 border flex items-center justify-center
           ${viewMode === 'agents'
             ? 'bg-nc-green/15 text-nc-green border-nc-green shadow-nc-green'
             : 'text-nc-muted border-nc-border hover:text-nc-green hover:border-nc-green/50'}
@@ -78,7 +78,7 @@ export default function WorkspaceRail() {
       <button
         ref={settingsRef}
         onClick={() => setSettingsOpen(true)}
-        className="w-10 h-10 border border-nc-border flex items-center justify-center text-nc-muted hover:text-nc-yellow hover:border-nc-yellow/50 transition-all duration-150 glitch-text"
+        className="cyber-btn w-10 h-10 border border-nc-border flex items-center justify-center text-nc-muted hover:text-nc-yellow hover:border-nc-yellow/50 glitch-text"
         title="Settings"
       >
         <Settings size={20} />

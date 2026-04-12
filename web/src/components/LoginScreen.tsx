@@ -1,3 +1,4 @@
+import { GoogleLogin } from '@react-oauth/google';
 import { useApp } from '../store/AppContext';
 import { useState, useEffect, useCallback } from 'react';
 import GlitchTransition from './glitch/GlitchTransition';
@@ -41,20 +42,38 @@ function ScrambleTitle() {
 }
 
 export default function LoginScreen() {
-  const { loginAsGuest } = useApp();
+  const { loginWithGoogle, loginAsGuest, hasGoogleAuth } = useApp();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [glitchActive, setGlitchActive] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'guest' | 'google' | null>(null);
   const btnRef = useGlitch<HTMLButtonElement>({ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.6, minDuration: 80, maxDuration: 200 });
 
-  const handleLogin = useCallback(() => {
+  const handleGuestLogin = useCallback(() => {
     setLoading(true);
+    setPendingAction('guest');
     setGlitchActive(true);
   }, []);
 
+  const handleGoogleSuccess = useCallback(async (credential: string) => {
+    setLoading(true);
+    setError(null);
+    setPendingAction('google');
+    try {
+      await loginWithGoogle(credential);
+    } catch {
+      setError('Google sign-in failed. Is GOOGLE_CLIENT_ID configured on the server?');
+      setLoading(false);
+    }
+  }, [loginWithGoogle]);
+
   const handleGlitchComplete = useCallback(() => {
     setGlitchActive(false);
-    loginAsGuest();
-  }, [loginAsGuest]);
+    if (pendingAction === 'guest') {
+      loginAsGuest();
+    }
+    setPendingAction(null);
+  }, [pendingAction, loginAsGuest]);
 
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-nc-black font-body cyber-scanlines">
@@ -75,6 +94,12 @@ export default function LoginScreen() {
             </p>
           </div>
 
+          {error && (
+            <div className="mb-4 p-3 border border-nc-red/50 bg-nc-red/10 text-xs font-mono text-nc-red">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-3 mb-6">
             <div className="flex items-center gap-2 text-2xs text-nc-muted uppercase tracking-wider">
               <div className="h-px flex-1 bg-nc-border" />
@@ -83,11 +108,37 @@ export default function LoginScreen() {
             </div>
           </div>
 
+          {hasGoogleAuth && (
+            <>
+              <div className="flex justify-center mb-4">
+                <GoogleLogin
+                  onSuccess={(response) => {
+                    if (response.credential) {
+                      handleGoogleSuccess(response.credential);
+                    } else {
+                      setError('No credential received from Google');
+                    }
+                  }}
+                  onError={() => setError('Google sign-in was cancelled or failed')}
+                  text="signin_with"
+                  shape="rectangular"
+                  width={280}
+                />
+              </div>
+
+              <div className="flex items-center gap-2 text-2xs text-nc-muted uppercase tracking-wider mb-4">
+                <div className="h-px flex-1 bg-nc-border" />
+                <span>or</span>
+                <div className="h-px flex-1 bg-nc-border" />
+              </div>
+            </>
+          )}
+
           <button
             ref={btnRef}
-            onClick={handleLogin}
+            onClick={handleGuestLogin}
             disabled={loading}
-            className="cyber-btn w-full py-3 px-4 bg-nc-cyan/10 border border-nc-cyan/50 text-nc-cyan font-display font-bold text-sm tracking-[0.15em] uppercase hover:bg-nc-cyan/20 hover:shadow-nc-cyan active:bg-nc-cyan/30 transition-all disabled:opacity-50 cyber-bevel-sm"
+            className="cyber-btn-lg glitch-hover w-full py-3 px-4 bg-nc-cyan/10 border border-nc-cyan/50 text-nc-cyan font-display font-bold text-sm tracking-[0.15em] uppercase hover:bg-nc-cyan/20 hover:shadow-nc-cyan active:bg-nc-cyan/30 disabled:opacity-50"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">

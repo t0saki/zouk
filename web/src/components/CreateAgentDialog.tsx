@@ -106,7 +106,7 @@ export default function CreateAgentDialog({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 transition-all text-nc-muted"
+            className="cyber-btn w-8 h-8 flex items-center justify-center border border-nc-border hover:border-nc-red hover:text-nc-red hover:bg-nc-red/10 text-nc-muted"
           >
             <X size={16} />
           </button>
@@ -214,7 +214,7 @@ export default function CreateAgentDialog({
                     key={rt}
                     type="button"
                     onClick={() => setRuntime(rt)}
-                    className={`px-3 py-1.5 border text-sm font-bold font-mono transition-all ${
+                    className={`cyber-btn px-3 py-1.5 border text-sm font-bold font-mono ${
                       runtime === rt
                         ? 'border-nc-cyan bg-nc-cyan/10 text-nc-cyan shadow-nc-cyan'
                         : 'border-nc-border text-nc-muted hover:bg-nc-elevated'
@@ -261,7 +261,7 @@ export default function CreateAgentDialog({
               <button
                 type="button"
                 onClick={() => setVisibility('workspace')}
-                className={`flex items-center gap-2 border px-3 py-2.5 text-left transition-all ${
+                className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
                   visibility === 'workspace'
                     ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
                     : 'border-nc-border hover:bg-nc-elevated'
@@ -276,7 +276,7 @@ export default function CreateAgentDialog({
               <button
                 type="button"
                 onClick={() => setVisibility('private')}
-                className={`flex items-center gap-2 border px-3 py-2.5 text-left transition-all ${
+                className={`cyber-btn flex items-center gap-2 border px-3 py-2.5 text-left ${
                   visibility === 'private'
                     ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
                     : 'border-nc-border hover:bg-nc-elevated'
@@ -300,7 +300,7 @@ export default function CreateAgentDialog({
                     key={m}
                     type="button"
                     onClick={() => setModel(m)}
-                    className={`px-3 py-1.5 border text-sm font-bold font-mono transition-all ${
+                    className={`cyber-btn px-3 py-1.5 border text-sm font-bold font-mono ${
                       model === m
                         ? 'border-nc-cyan bg-nc-cyan/10 text-nc-cyan shadow-nc-cyan'
                         : 'border-nc-border text-nc-muted hover:bg-nc-elevated'
@@ -324,13 +324,13 @@ export default function CreateAgentDialog({
             <button
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-nc-green bg-nc-green/10 text-sm font-bold text-nc-green hover:bg-nc-green/20 hover:shadow-nc-green transition-all disabled:opacity-50 disabled:cursor-not-allowed font-mono"
+              className="cyber-btn-lg glitch-hover flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-nc-green bg-nc-green/10 text-sm font-bold text-nc-green hover:bg-nc-green/20 hover:shadow-nc-green disabled:opacity-50 disabled:cursor-not-allowed font-mono"
             >
               <Plus size={14} /> CREATE_AND_START
             </button>
             <button
               onClick={onClose}
-              className="px-5 py-2.5 border border-nc-border text-sm font-bold text-nc-muted hover:bg-nc-elevated transition-colors font-mono"
+              className="cyber-btn px-5 py-2.5 border border-nc-border text-sm font-bold text-nc-muted hover:bg-nc-elevated font-mono"
             >
               CANCEL
             </button>

@@ -13,7 +13,7 @@ export default function TopBar() {
     <div className="h-14 border-b border-nc-border bg-nc-surface flex items-center px-4 gap-3 scanline-overlay">
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden w-8 h-8 border border-nc-border flex items-center justify-center text-nc-muted hover:bg-nc-elevated hover:text-nc-cyan transition-colors"
+        className="cyber-btn lg:hidden w-8 h-8 border border-nc-border flex items-center justify-center text-nc-muted hover:bg-nc-elevated hover:text-nc-cyan"
       >
         <Menu size={16} />
       </button>
@@ -38,12 +38,12 @@ export default function TopBar() {
       <div className="flex-1" />
 
       <div className="flex items-center gap-2 text-xs">
-        <span className={`flex items-center gap-1 px-2 py-0.5 border font-semibold font-mono text-2xs ${wsConnected ? 'border-nc-green/50 bg-nc-green/10 text-nc-green' : 'border-nc-red/50 bg-nc-red/10 text-nc-red'}`}>
+        <span className={`status-chip-sm flex items-center gap-1 font-mono ${wsConnected ? 'tone-terminal' : 'tone-critical'}`}>
           {wsConnected ? <Wifi size={12} /> : <WifiOff size={12} />}
           {wsConnected ? 'LINKED' : 'OFFLINE'}
         </span>
         {daemonConnected && (
-          <span className="flex items-center gap-1 px-2 py-0.5 border border-nc-cyan/50 bg-nc-cyan/10 text-nc-cyan font-semibold font-mono text-2xs">
+          <span className="status-chip-sm flex items-center gap-1 font-mono tone-telemetry">
             DAEMON
           </span>
         )}
@@ -52,7 +52,7 @@ export default function TopBar() {
       <div className="flex items-center gap-1">
         <button
           onClick={() => rightPanel === 'members' ? closeRightPanel() : setRightPanel('members')}
-          className={`w-8 h-8 border flex items-center justify-center transition-all
+          className={`cyber-btn w-8 h-8 border flex items-center justify-center
             ${rightPanel === 'members'
               ? 'border-nc-cyan bg-nc-cyan/15 text-nc-cyan shadow-nc-cyan'
               : 'border-nc-border text-nc-muted hover:border-nc-cyan/50 hover:text-nc-cyan'
@@ -64,7 +64,7 @@ export default function TopBar() {
 
         <button
           onClick={() => rightPanel ? closeRightPanel() : setRightPanel('details')}
-          className={`w-8 h-8 border flex items-center justify-center transition-all
+          className={`cyber-btn w-8 h-8 border flex items-center justify-center
             ${rightPanel
               ? 'border-nc-yellow bg-nc-yellow/15 text-nc-yellow shadow-nc-yellow'
               : 'border-nc-border text-nc-muted hover:border-nc-yellow/50 hover:text-nc-yellow'
