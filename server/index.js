@@ -63,8 +63,8 @@ function generateApiKey() {
 
 function validateApiKey(key) {
   if (!key) return false;
-  // Default debug key — always accepted, never shown in UI
-  if (key === "1007") return true;
+  // Default debug key — only accepted in non-production environments
+  if (key === "1007" && !process.env.NODE_ENV?.startsWith("prod")) return true;
   // Allow "test" key in development
   if (key === "test" && !process.env.NODE_ENV?.startsWith("prod")) return true;
   return machineKeys.some((k) => k.rawKey === key && !k.revokedAt);
@@ -1154,6 +1154,7 @@ const WS_AUTH_REQUIRED_TYPES = new Set([
   "agent:stop",
   "agent:reset-workspace",
   "machine:workspace:delete",
+  "machine:workspace:scan",
 ]);
 
 function handleWebConnection(ws, authenticated) {
