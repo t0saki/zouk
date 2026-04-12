@@ -86,6 +86,7 @@ export async function createChannel(name: string): Promise<{ channel: { id: stri
 }
 
 export async function startAgent(config: {
+  id?: string;
   name: string;
   displayName?: string;
   description?: string;

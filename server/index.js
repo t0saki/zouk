@@ -81,7 +81,7 @@ const store = {
   messages: [], // { id, seq, channelId, channelName, channelType, threadId, senderName, senderType, content, createdAt, attachments, taskNumber, taskStatus, taskAssigneeId, taskAssigneeType }
   tasks: [], // { taskNumber, channelId, title, status, messageId, claimedByName, claimedByType, createdByName }
   agents: {}, // agentId -> { name, displayName, runtime, model, status, sessionId, ws }
-  humans: [{ name: "local-user" }],
+  humans: [],
   attachments: {}, // id -> { filename, buffer, contentType }
   agentReadSeq: {}, // agentId -> last seq delivered/read
   seq: 0,
@@ -765,12 +765,24 @@ app.post("/api/agent-configs", requireAuth, (req, res) => {
   res.json({ config: saved });
 });
 
-// Update agent config
+// Update agent config (upsert: creates config from running agent if none exists)
 app.put("/api/agents/:id/config", requireAuth, (req, res) => {
   const { id } = req.params;
   const updates = req.body;
-  const idx = agentConfigs.findIndex((c) => c.id === id);
-  if (idx < 0) return res.status(404).json({ error: "Config not found" });
+  let idx = agentConfigs.findIndex((c) => c.id === id);
+  if (idx < 0) {
+    const running = store.agents[id];
+    if (!running) return res.status(404).json({ error: "Agent not found" });
+    agentConfigs.push({
+      id,
+      name: running.name,
+      displayName: running.displayName,
+      runtime: running.runtime,
+      model: running.model,
+      workDir: running.workDir,
+    });
+    idx = agentConfigs.length - 1;
+  }
   agentConfigs[idx] = { ...agentConfigs[idx], ...updates };
   saveAgentConfigs(agentConfigs);
   db.saveAgentConfig(agentConfigs[idx]);
