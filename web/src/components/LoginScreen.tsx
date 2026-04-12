@@ -11,8 +11,10 @@ const GLITCH_CHARS = '!<>-_\\/[]{}#$%^&*=+|;:0123456789ABCDEF';
 function ScrambleTitle() {
   const [text, setText] = useState('ZOUK');
   const target = 'ZOUK';
+  const nc = isNightCity();
 
   useEffect(() => {
+    if (!nc) return; // No scramble effect on non-NC themes
     let frame: number;
     let iteration = 0;
     const animate = () => {
@@ -31,12 +33,20 @@ function ScrambleTitle() {
     };
     const timeout = setTimeout(() => { frame = requestAnimationFrame(animate); }, 300);
     return () => { clearTimeout(timeout); cancelAnimationFrame(frame); };
-  }, []);
+  }, [nc]);
+
+  if (!nc) {
+    return (
+      <h1 className="font-display font-black text-2xl text-nc-text-bright text-center mb-1">
+        Zouk
+      </h1>
+    );
+  }
 
   return (
     <h1
       className="font-display font-black text-3xl text-nc-cyan tracking-[0.2em] text-center mb-1"
-      style={ncStyle({ textShadow: '0 0 20px rgb(var(--nc-cyan) / 0.4), 0 0 60px rgb(var(--nc-cyan) / 0.1)' })}
+      style={{ textShadow: '0 0 20px rgb(var(--nc-cyan) / 0.4), 0 0 60px rgb(var(--nc-cyan) / 0.1)' }}
     >
       {text}
     </h1>
@@ -75,6 +85,8 @@ export default function LoginScreen() {
     setPendingAction(null);
   }, [pendingAction, loginAsGuest]);
 
+  const nc = isNightCity();
+
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-nc-black font-body cyber-scanlines">
       <GlitchTransition
@@ -84,7 +96,7 @@ export default function LoginScreen() {
         themeAgnostic={pendingAction === null}
       />
 
-      {isNightCity() && (
+      {nc && (
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgb(var(--nc-cyan) / 0.03) 2px, rgb(var(--nc-cyan) / 0.03) 4px)',
         }} />
@@ -92,12 +104,12 @@ export default function LoginScreen() {
 
       <div className="relative z-10 w-full max-w-sm">
         <div className="cyber-panel p-8 cyber-bevel">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-nc-cyan/40 to-transparent" />
+          {nc && <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-nc-cyan/40 to-transparent" />}
 
           <div className="mb-8">
             <ScrambleTitle />
-            <p className="text-sm text-nc-muted text-center tracking-[0.15em] uppercase font-medium mt-2">
-              Jack into the system
+            <p className={`text-sm text-nc-muted text-center mt-2 ${nc ? 'tracking-[0.15em] uppercase font-medium' : ''}`}>
+              {nc ? 'Jack into the system' : 'Sign in to continue'}
             </p>
           </div>
 
@@ -106,14 +118,6 @@ export default function LoginScreen() {
               {error}
             </div>
           )}
-
-          <div className="space-y-3 mb-6">
-            <div className="flex items-center gap-2 text-2xs text-nc-muted uppercase tracking-wider">
-              <div className="h-px flex-1 bg-nc-border" />
-              <span>system access</span>
-              <div className="h-px flex-1 bg-nc-border" />
-            </div>
-          </div>
 
           {hasGoogleAuth && (
             <>
@@ -129,34 +133,54 @@ export default function LoginScreen() {
                   onError={() => setError('Google sign-in was cancelled or failed')}
                   text="signin_with"
                   shape="rectangular"
+                  theme={nc ? "filled_black" : "outline"}
                   width={280}
                 />
               </div>
 
-              <div className="flex items-center gap-2 text-2xs text-nc-muted uppercase tracking-wider mb-4">
-                <div className="h-px flex-1 bg-nc-border" />
-                <span>or</span>
-                <div className="h-px flex-1 bg-nc-border" />
+              <div className="flex items-center gap-3 w-full mb-4">
+                <div className="flex-1 h-px bg-nc-border" />
+                <span className="text-xs text-nc-muted uppercase tracking-wider">or</span>
+                <div className="flex-1 h-px bg-nc-border" />
               </div>
             </>
+          )}
+
+          {!hasGoogleAuth && nc && (
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-2 text-2xs text-nc-muted uppercase tracking-wider">
+                <div className="h-px flex-1 bg-nc-border" />
+                <span>system access</span>
+                <div className="h-px flex-1 bg-nc-border" />
+              </div>
+            </div>
           )}
 
           <ScanlineTear className="w-full" config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
             <button
               onClick={handleGuestLogin}
               disabled={loading}
-              className="cyber-btn-lg w-full py-3 px-4 bg-nc-cyan/10 border border-nc-cyan/50 text-nc-cyan font-display font-bold text-sm tracking-[0.15em] uppercase hover:bg-nc-cyan/20 hover:shadow-nc-cyan active:bg-nc-cyan/30 disabled:opacity-50"
+              className={nc
+                ? "cyber-btn-lg w-full py-3 px-4 bg-nc-cyan/10 border border-nc-cyan/50 text-nc-cyan font-display font-bold text-sm tracking-[0.15em] uppercase hover:bg-nc-cyan/20 hover:shadow-nc-cyan active:bg-nc-cyan/30 disabled:opacity-50"
+                : "cyber-btn-lg w-full py-2.5 px-4 bg-nc-panel border border-nc-border-bright text-nc-text-bright font-bold text-sm hover:bg-nc-yellow disabled:opacity-50"
+              }
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <span className="w-3 h-3 border border-nc-cyan border-t-transparent animate-spin" />
-                  Connecting...
+                  <span className={`w-3 h-3 border ${nc ? 'border-nc-cyan' : 'border-nc-border-bright'} border-t-transparent animate-spin`} />
+                  {nc ? 'Connecting...' : 'Connecting...'}
                 </span>
               ) : (
-                'Initialize Guest Session'
+                nc ? 'Initialize Guest Session' : 'Continue as Guest'
               )}
             </button>
           </ScanlineTear>
+
+          {!nc && (
+            <p className="mt-4 text-2xs text-nc-muted text-center">
+              Guest users get a random display name
+            </p>
+          )}
 
           <div className="mt-6 flex items-center gap-3">
             <div className="h-px flex-1 bg-nc-border" />
@@ -186,16 +210,18 @@ export default function LoginScreen() {
             })}
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-nc-red/20 to-transparent" />
+          {nc && <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-nc-red/20 to-transparent" />}
         </div>
 
-        <div className="flex justify-between mt-3 px-1">
-          <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 bg-nc-green animate-glow-pulse" />
-            <span className="text-2xs font-mono text-nc-green/70">SYS_ONLINE</span>
+        {nc ? (
+          <div className="flex justify-between mt-3 px-1">
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 bg-nc-green animate-glow-pulse" />
+              <span className="text-2xs font-mono text-nc-green/70">SYS_ONLINE</span>
+            </div>
+            <span className="text-2xs font-mono text-nc-muted/40">NC::2077</span>
           </div>
-          <span className="text-2xs font-mono text-nc-muted/40">NC::2077</span>
-        </div>
+        ) : null}
       </div>
     </div>
   );

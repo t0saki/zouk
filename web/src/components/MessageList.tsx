@@ -3,15 +3,20 @@ import { useApp } from '../store/AppContext';
 import MessageItem from './MessageItem';
 import type { MessageRecord } from '../types';
 import { Loader } from 'lucide-react';
+import { isNightCity } from '../lib/themeUtils';
 
 function DateDivider({ date }: { date: string }) {
+  const nc = isNightCity();
   return (
     <div className="flex items-center gap-3 px-5 py-3">
-      <div className="flex-1 cyber-divider" />
-      <span className="bg-nc-elevated border border-nc-border px-3 py-1 text-xs font-bold text-nc-cyan font-mono tracking-wider">
+      <div className={`flex-1 ${nc ? 'cyber-divider' : 'border-t-2 border-nc-border'}`} />
+      <span className={nc
+        ? 'bg-nc-elevated border border-nc-border px-3 py-1 text-xs font-bold text-nc-cyan font-mono tracking-wider'
+        : 'bg-nc-surface border-2 border-nc-border-bright px-3 py-1 text-xs font-bold text-nc-text-bright shadow-[2px_2px_0px_0px_#1A1A1A]'
+      }>
         {date}
       </span>
-      <div className="flex-1 cyber-divider" />
+      <div className={`flex-1 ${nc ? 'cyber-divider' : 'border-t-2 border-nc-border'}`} />
     </div>
   );
 }
@@ -54,15 +59,22 @@ export default function MessageList() {
   }
 
   if (channelMessages.length === 0) {
+    const nc = isNightCity();
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-center cyber-panel p-8 max-w-sm cyber-bevel">
-          <div className="text-4xl mb-3 opacity-50">
-            <span className="neon-cyan">&gt;_</span>
+        {nc ? (
+          <div className="text-center cyber-panel p-8 max-w-sm cyber-bevel">
+            <div className="text-4xl mb-3 opacity-50"><span className="neon-cyan">&gt;_</span></div>
+            <h3 className="font-display font-black text-xl text-nc-cyan neon-cyan mb-2 tracking-wider">NO_DATA</h3>
+            <p className="text-sm text-nc-muted font-mono">Initialize comms in #{activeChannelName}</p>
           </div>
-          <h3 className="font-display font-black text-xl text-nc-cyan neon-cyan mb-2 tracking-wider">NO_DATA</h3>
-          <p className="text-sm text-nc-muted font-mono">Initialize comms in #{activeChannelName}</p>
-        </div>
+        ) : (
+          <div className="text-center cyber-panel p-8 max-w-sm">
+            <div className="text-4xl mb-3">&#x1F4AC;</div>
+            <h3 className="font-display font-black text-xl text-nc-text-bright mb-2">No messages yet</h3>
+            <p className="text-sm text-nc-muted">Be the first to say something in #{activeChannelName}</p>
+          </div>
+        )}
       </div>
     );
   }

@@ -2,7 +2,7 @@ import './tokens.css';
 
 export const brutalist = {
   id: 'brutalist' as const,
-  name: 'Brutalist',
+  name: 'Neo Brutalism',
   description: 'Bold neobrutalist — thick borders, punchy primaries, raw type',
   preview: {
     bg: '#fffcf5',

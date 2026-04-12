@@ -70,7 +70,7 @@ export default function BrutalistThemeSelectButton({ selected, onClick }: Props)
       onClick={handleClick}
       aria-pressed={selected}
     >
-      <span className="br-theme-btn__label">Brutalist</span>
+      <span className="br-theme-btn__label">Neo Brutalism</span>
     </button>
   );
 }

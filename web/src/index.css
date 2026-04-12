@@ -441,6 +441,160 @@ html[data-theme="night-city"] .scanline-overlay::before {
 }
 
 /* ==========================================================================
+   Brutalist theme — neobrutalist decorations
+   Only applied when data-theme="brutalist" is set on <html>.
+   ========================================================================== */
+
+/* Panels — thick border + offset shadow, flat bg */
+html[data-theme="brutalist"] .cyber-panel {
+  border-width: 3px;
+  border-color: rgb(var(--nc-border-bright));
+  box-shadow: 6px 6px 0px 0px rgb(var(--nc-border-bright));
+  background: rgb(var(--nc-surface));
+}
+
+html[data-theme="brutalist"] .cyber-panel-elevated {
+  border-width: 3px;
+  border-color: rgb(var(--nc-border));
+  box-shadow: 4px 4px 0px 0px rgb(var(--nc-border));
+  background: rgb(var(--nc-elevated));
+}
+
+/* Buttons — thick border + offset shadow */
+html[data-theme="brutalist"] .cyber-btn {
+  border-width: 2px !important;
+  border-color: rgb(var(--nc-border));
+  border-radius: 0;
+}
+
+html[data-theme="brutalist"] .cyber-btn:hover,
+html[data-theme="brutalist"] .cyber-btn:focus-visible {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px 0px rgb(var(--nc-border));
+}
+
+html[data-theme="brutalist"] .cyber-btn:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="brutalist"] .cyber-btn-lg {
+  border-width: 3px !important;
+  border-color: rgb(var(--nc-border-bright));
+  box-shadow: 4px 4px 0px 0px rgb(var(--nc-border-bright));
+  border-radius: 0;
+}
+
+html[data-theme="brutalist"] .cyber-btn-lg:hover,
+html[data-theme="brutalist"] .cyber-btn-lg:focus-visible {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px 0px rgb(var(--nc-border-bright));
+}
+
+html[data-theme="brutalist"] .cyber-btn-lg:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: none !important;
+}
+
+/* Input — thick border + offset shadow on focus */
+html[data-theme="brutalist"] .cyber-input {
+  border-width: 2px;
+  border-color: rgb(var(--nc-border));
+}
+
+html[data-theme="brutalist"] .cyber-input:focus {
+  border-color: rgb(var(--nc-cyan));
+  box-shadow: 3px 3px 0px 0px rgb(var(--nc-cyan));
+}
+
+/* Status chips — solid borders, square */
+html[data-theme="brutalist"] .status-chip {
+  border-width: 2px;
+  border-radius: 0;
+}
+
+html[data-theme="brutalist"] .status-chip-sm {
+  border-width: 2px;
+  border-radius: 0;
+}
+
+/* Tone colors — more solid borders */
+html[data-theme="brutalist"] .tone-critical {
+  background: rgb(var(--nc-red) / 0.08);
+  border-color: rgb(var(--nc-red));
+  color: rgb(var(--nc-red));
+}
+
+html[data-theme="brutalist"] .tone-terminal {
+  background: rgb(var(--nc-green) / 0.08);
+  border-color: rgb(var(--nc-green));
+  color: rgb(var(--nc-green));
+}
+
+html[data-theme="brutalist"] .tone-telemetry {
+  background: rgb(var(--nc-cyan) / 0.08);
+  border-color: rgb(var(--nc-cyan));
+  color: rgb(var(--nc-cyan));
+}
+
+html[data-theme="brutalist"] .tone-warning {
+  background: rgb(var(--nc-yellow) / 0.08);
+  border-color: rgb(var(--nc-yellow));
+  color: rgb(var(--nc-yellow));
+}
+
+html[data-theme="brutalist"] .tone-neutral {
+  background: rgb(var(--nc-elevated));
+  border-color: rgb(var(--nc-border));
+  color: rgb(var(--nc-text-bright));
+}
+
+/* Scrollbar — wider, solid */
+html[data-theme="brutalist"] .scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+html[data-theme="brutalist"] .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--nc-border));
+  border: 1px solid rgb(var(--nc-border-bright));
+}
+
+/* Border glow → solid thick border, no glow */
+html[data-theme="brutalist"] .cyber-border-glow {
+  border-width: 2px;
+  border-color: rgb(var(--nc-cyan));
+  box-shadow: none;
+}
+
+/* Divider — solid bar */
+html[data-theme="brutalist"] .cyber-divider {
+  height: 2px;
+  background: rgb(var(--nc-border));
+}
+
+/* Selection — yellow */
+html[data-theme="brutalist"] ::selection {
+  background-color: rgb(var(--nc-selection-bg) / 0.5);
+  color: rgb(var(--nc-selection-text));
+}
+
+/* Message composer — thick border on focus */
+html[data-theme="brutalist"] .focus-within\:border-nc-cyan:focus-within {
+  border-color: rgb(var(--nc-cyan));
+  box-shadow: 3px 3px 0px 0px rgb(var(--nc-cyan));
+}
+
+/* Code blocks — thick border */
+html[data-theme="brutalist"] pre[class*="border"] {
+  border-width: 2px;
+}
+
+/* Ensure no gradient/glow shadows leak — flat offset only */
+html[data-theme="brutalist"] [class*="shadow-nc-"] {
+  box-shadow: 2px 2px 0px 0px rgb(var(--nc-border));
+}
+
+/* ==========================================================================
    Keyframes — defined globally, only referenced by NC-specific selectors
    ========================================================================== */
 

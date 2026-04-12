@@ -2,21 +2,23 @@ import { useState } from 'react';
 import { Hash, ChevronDown, ChevronRight, Plus, Bot, User, RotateCcw } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import GlitchText from './glitch/GlitchText';
+import { isNightCity } from '../lib/themeUtils';
 
 function SectionHeader({ title, count, collapsed, onToggle, onAdd }: {
   title: string; count?: number; collapsed: boolean; onToggle: () => void; onAdd?: () => void;
 }) {
+  const nc = isNightCity();
   return (
     <div className="flex items-center justify-between px-3 py-1.5 group">
-      <button onClick={onToggle} className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-nc-muted hover:text-nc-cyan transition-colors">
+      <button onClick={onToggle} className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider transition-colors ${nc ? 'text-nc-muted hover:text-nc-cyan' : 'text-nc-muted hover:text-nc-text-bright'}`}>
         {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
         <span>{title}</span>
         {count !== undefined && count > 0 && (
-          <span className="ml-1 bg-nc-cyan/20 text-nc-cyan text-2xs font-black px-1 border border-nc-cyan/30">{count}</span>
+          <span className={`ml-1 text-2xs font-black px-1 border ${nc ? 'bg-nc-cyan/20 text-nc-cyan border-nc-cyan/30' : 'bg-nc-yellow text-nc-text-bright border-nc-border-bright'}`}>{count}</span>
         )}
       </button>
       {onAdd && (
-        <button onClick={onAdd} className="opacity-0 group-hover:opacity-100 text-nc-muted hover:text-nc-cyan transition-all">
+        <button onClick={onAdd} className={`opacity-0 group-hover:opacity-100 transition-all ${nc ? 'text-nc-muted hover:text-nc-cyan' : 'text-nc-muted hover:text-nc-text-bright'}`}>
           <Plus size={14} />
         </button>
       )}
@@ -54,20 +56,25 @@ export default function ChannelSidebar() {
     error: 'bg-nc-red',
   };
 
+  const nc = isNightCity();
+
   return (
-    <div className="w-[260px] h-full bg-nc-surface border-r border-nc-border flex flex-col overflow-hidden">
-      <div className="px-3 py-3 border-b border-nc-border">
+    <div className={`w-[260px] h-full flex flex-col overflow-hidden ${nc ? 'bg-nc-surface border-r border-nc-border' : 'bg-nc-panel border-r-[3px] border-nc-border-bright'}`}>
+      <div className={`px-3 py-3 ${nc ? 'border-b border-nc-border' : 'border-b-[3px] border-nc-border-bright'}`}>
         <div className="flex items-center justify-between">
-          <GlitchText as="h2" className="font-display font-black text-lg text-nc-cyan neon-cyan truncate tracking-wider" intensity="low">ZOUK</GlitchText>
+          {nc
+            ? <GlitchText as="h2" className="font-display font-black text-lg text-nc-cyan neon-cyan truncate tracking-wider" intensity="low">ZOUK</GlitchText>
+            : <h2 className="font-display font-black text-lg text-nc-text-bright truncate">Zouk</h2>
+          }
           {totalUnread > 0 && (
-            <span className="bg-nc-red/20 text-nc-red text-2xs font-black px-1.5 py-0.5 border border-nc-red/40">
+            <span className={`text-2xs font-black px-1.5 py-0.5 border ${nc ? 'bg-nc-red/20 text-nc-red border-nc-red/40' : 'bg-nc-red text-white border-2 border-nc-border-bright shadow-[2px_2px_0px_0px_#1A1A1A]'}`}>
               {totalUnread}
             </span>
           )}
         </div>
         <div className="flex items-center gap-1.5 mt-1">
-          <span className={`w-2 h-2 ${wsConnected ? 'bg-nc-green shadow-nc-green' : 'bg-nc-red shadow-nc-red'}`} />
-          <span className="text-xs text-nc-muted truncate font-mono">{currentUser}</span>
+          <span className={`w-2 h-2 ${nc ? '' : 'border border-nc-border-bright'} ${wsConnected ? (nc ? 'bg-nc-green shadow-nc-green' : 'bg-nc-green') : (nc ? 'bg-nc-red shadow-nc-red' : 'bg-nc-red')}`} />
+          <span className="text-xs text-nc-muted truncate">{currentUser}</span>
         </div>
       </div>
 
@@ -106,12 +113,14 @@ export default function ChannelSidebar() {
                 key={ch.id}
                 onClick={() => selectChannel(ch.name)}
                 className={`
-                  w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-100 group
+                  w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-75 group
                   ${isActive
-                    ? 'bg-nc-cyan/10 border-l-2 border-nc-cyan text-nc-cyan font-bold'
+                    ? (nc
+                        ? 'bg-nc-cyan/10 border-l-2 border-nc-cyan text-nc-cyan font-bold'
+                        : 'bg-nc-yellow text-nc-text-bright font-bold border-2 border-nc-border-bright shadow-[2px_2px_0px_0px_#1A1A1A] mx-1')
                     : unread > 0
-                      ? 'font-semibold text-nc-text-bright hover:bg-nc-elevated'
-                      : 'text-nc-muted hover:bg-nc-elevated hover:text-nc-text'
+                      ? (nc ? 'font-semibold text-nc-text-bright hover:bg-nc-elevated' : 'font-semibold text-nc-text-bright hover:bg-nc-elevated')
+                      : (nc ? 'text-nc-muted hover:bg-nc-elevated hover:text-nc-text' : 'text-nc-muted hover:bg-nc-elevated hover:text-nc-text-bright')
                   }
                 `}
               >
@@ -142,9 +151,11 @@ export default function ChannelSidebar() {
                 key={agent.id}
                 onClick={() => selectChannel(agent.name, true)}
                 className={`
-                  w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-100 group
+                  w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-75 group
                   ${isActive
-                    ? 'bg-nc-green/10 border-l-2 border-nc-green text-nc-green font-bold'
+                    ? (nc
+                        ? 'bg-nc-green/10 border-l-2 border-nc-green text-nc-green font-bold'
+                        : 'bg-nc-yellow text-nc-text-bright font-bold border-2 border-nc-border-bright shadow-[2px_2px_0px_0px_#1A1A1A] mx-1')
                     : unread > 0
                       ? 'font-semibold text-nc-text-bright hover:bg-nc-elevated'
                       : 'text-nc-muted hover:bg-nc-elevated hover:text-nc-text'

@@ -143,7 +143,7 @@ export default function MessageComposer({ threadTarget, placeholder }: { threadT
         </div>
       )}
 
-      <div className="flex items-stretch border border-nc-border bg-nc-surface focus-within:border-nc-cyan focus-within:shadow-nc-cyan" style={{ clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))' }}>
+      <div className="flex items-stretch border border-nc-border bg-nc-surface focus-within:border-nc-cyan focus-within:shadow-nc-cyan cyber-bevel-sm">
         <textarea
           ref={textareaRef}
           value={text}
