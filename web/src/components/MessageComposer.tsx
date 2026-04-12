@@ -108,6 +108,11 @@ export default function MessageComposer({ threadTarget, placeholder }: { threadT
     }
   }, []);
 
+  // Auto-focus textarea when switching channels/views
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, [activeChannelName, viewMode]);
+
   // Close mention dropdown on blur (with delay to allow click)
   useEffect(() => {
     const el = textareaRef.current;
