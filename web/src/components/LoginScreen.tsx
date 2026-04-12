@@ -163,7 +163,6 @@ export default function LoginScreen() {
             {themes.map((t) => {
               const active = theme === t.id;
               const isNight = t.id === 'night-city';
-              const isDaylight = t.id === 'daylight';
               const isBrutalist = t.id === 'brutalist';
 
               return (
@@ -180,24 +179,17 @@ export default function LoginScreen() {
                   className={`relative overflow-hidden px-3 py-3 text-center transition-all duration-200 ${
                     isNight
                       ? 'cyber-btn cyber-bevel-sm uppercase font-display tracking-[0.18em]'
-                      : isDaylight
-                        ? 'rounded-md font-body font-semibold tracking-[0.12em]'
-                        : 'font-display font-black tracking-[0.14em] uppercase'
+                      : 'font-display font-black tracking-[0.14em] uppercase'
                   }`}
                   style={{
                     border: isBrutalist ? '3px solid #171717' : `1px solid ${active ? t.preview.accent : `${t.preview.accent}88`}`,
                     background: isNight
                       ? (active ? 'rgba(94, 246, 255, 0.16)' : 'rgba(10, 10, 15, 0.92)')
-                      : isDaylight
-                        ? (active ? 'linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%)' : 'linear-gradient(180deg, #f9fafb 0%, #eef2f7 100%)')
-                        : (active ? '#facc15' : '#fffaf0'),
-                    color: isDaylight ? '#111827' : t.preview.text,
+                      : (active ? '#facc15' : '#fffaf0'),
+                    color: t.preview.text,
                     boxShadow: isNight
                       ? (active ? '0 0 14px rgba(94,246,255,0.22)' : 'inset 0 1px 0 rgba(94,246,255,0.08)')
-                      : isDaylight
-                        ? (active ? '0 8px 20px rgba(15,23,42,0.10)' : '0 4px 14px rgba(15,23,42,0.06)')
-                        : (active ? '4px 4px 0 #171717' : '3px 3px 0 #171717'),
-                    textTransform: isDaylight ? 'none' : 'uppercase',
+                      : (active ? '4px 4px 0 #171717' : '3px 3px 0 #171717'),
                   }}
                 >
                   {isNight && (
@@ -206,10 +198,7 @@ export default function LoginScreen() {
                       style={{ background: t.preview.accent }}
                     />
                   )}
-                  <span className="relative block text-xs">
-                    {t.name}
-                    {active ? ' / ACTIVE' : ''}
-                  </span>
+                  <span className="relative block text-xs">{t.name}</span>
                 </button>
               );
             })}

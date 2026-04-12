@@ -1,8 +1,7 @@
 import { nightCity } from './night-city';
-import { daylight } from './daylight';
 import { brutalist } from './brutalist';
 
-export type ThemeId = 'night-city' | 'daylight' | 'brutalist';
+export type ThemeId = 'night-city' | 'brutalist';
 
 export interface ThemeDefinition {
   id: ThemeId;
@@ -16,7 +15,7 @@ export interface ThemeDefinition {
   };
 }
 
-export const themes: ThemeDefinition[] = [nightCity, daylight, brutalist];
+export const themes: ThemeDefinition[] = [nightCity, brutalist];
 
 export const DEFAULT_THEME: ThemeId = 'night-city';
 

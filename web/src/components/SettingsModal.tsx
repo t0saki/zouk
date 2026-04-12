@@ -129,32 +129,38 @@ export default function SettingsModal() {
               <div className="max-w-md space-y-6">
                 <div>
                   <label className="block text-xs font-bold text-nc-muted mb-3 uppercase tracking-wider">Theme</label>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {themes.map((t) => {
                       const active = theme === t.id;
+                      const isNight = t.id === 'night-city';
+                      const isBrutalist = t.id === 'brutalist';
                       return (
                         <ScanlineTear key={t.id} config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
                           <button
                             onClick={() => handleThemeChange(t.id)}
-                            className={`cyber-btn w-full text-left border px-4 py-3 transition-all ${
-                              active
-                                ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
-                                : 'border-nc-border hover:border-nc-cyan/50 hover:bg-nc-elevated/50'
+                            className={`relative w-full overflow-hidden px-4 py-3 text-center transition-all duration-200 ${
+                              isNight
+                                ? 'cyber-btn cyber-bevel-sm font-display uppercase tracking-[0.18em]'
+                                : 'font-display font-black uppercase tracking-[0.14em]'
                             }`}
+                            style={{
+                              border: isBrutalist ? '3px solid #171717' : `1px solid ${active ? t.preview.accent : `${t.preview.accent}88`}`,
+                              background: isNight
+                                ? (active ? 'rgba(94, 246, 255, 0.16)' : 'rgba(10, 10, 15, 0.92)')
+                                : (active ? '#facc15' : '#fffaf0'),
+                              color: t.preview.text,
+                              boxShadow: isNight
+                                ? (active ? '0 0 14px rgba(94,246,255,0.22)' : 'inset 0 1px 0 rgba(94,246,255,0.08)')
+                                : (active ? '4px 4px 0 #171717' : '3px 3px 0 #171717'),
+                            }}
                           >
-                            <div className="mb-3 h-1.5 w-full" style={{ background: t.preview.accent }} />
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <div className="font-display font-bold text-sm tracking-wider text-nc-text-bright uppercase">{t.name}</div>
-                                <div className="mt-1 text-2xs text-nc-muted leading-relaxed">{t.description}</div>
-                              </div>
-                              <span
-                                className={`status-chip-sm ${active ? 'tone-telemetry' : 'tone-neutral'}`}
-                                style={!active ? { color: t.preview.text, borderColor: `${t.preview.accent}55` } : undefined}
-                              >
-                                {active ? 'ACTIVE' : 'LOAD'}
-                              </span>
-                            </div>
+                            {isNight && (
+                              <div
+                                className="absolute left-0 right-0 top-0 h-[2px] opacity-90"
+                                style={{ background: t.preview.accent }}
+                              />
+                            )}
+                            <span className="relative block text-xs">{t.name}</span>
                           </button>
                         </ScanlineTear>
                       );

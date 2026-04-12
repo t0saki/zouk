@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import './themes/night-city';
-import './themes/daylight';
 import './themes/brutalist';
 
 createRoot(document.getElementById('root')!).render(
