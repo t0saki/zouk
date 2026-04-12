@@ -211,6 +211,80 @@ async function loadMaxTaskNum() {
   return data?.task_number || 0;
 }
 
+// ─── Agent configs ────────────────────────────────────────────────
+
+async function saveAgentConfig(config) {
+  if (!db) return;
+  const { error } = await db.from('agent_configs').upsert({
+    id: config.id,
+    name: config.name,
+    display_name: config.displayName || config.name,
+    runtime: config.runtime || 'claude',
+    model: config.model || null,
+    system_prompt: config.systemPrompt || null,
+    skills: config.skills || [],
+    work_dir: config.workDir || null,
+    description: config.description || null,
+    auto_start: config.autoStart || false,
+    config_json: config,
+  }, { onConflict: 'id' });
+  if (error) console.error('[db] saveAgentConfig error:', error.message);
+}
+
+async function deleteAgentConfig(id) {
+  if (!db) return;
+  const { error } = await db.from('agent_configs').delete().eq('id', id);
+  if (error) console.error('[db] deleteAgentConfig error:', error.message);
+}
+
+async function loadAgentConfigs() {
+  if (!db) return null; // null = not available, caller falls back to file
+  const { data, error } = await db
+    .from('agent_configs')
+    .select('config_json')
+    .order('name', { ascending: true });
+  if (error) {
+    console.error('[db] loadAgentConfigs error:', error.message);
+    return null;
+  }
+  return (data || []).map(row => row.config_json);
+}
+
+// ─── Machine keys ─────────────────────────────────────────────────
+
+async function saveMachineKey(key) {
+  if (!db) return;
+  const { error } = await db.from('machine_keys').upsert({
+    id: key.id,
+    name: key.name,
+    raw_key: key.rawKey,
+    created_at: key.createdAt,
+    last_used_at: key.lastUsedAt || null,
+    revoked_at: key.revokedAt || null,
+  }, { onConflict: 'id' });
+  if (error) console.error('[db] saveMachineKey error:', error.message);
+}
+
+async function loadMachineKeys() {
+  if (!db) return null; // null = not available, caller falls back to file
+  const { data, error } = await db
+    .from('machine_keys')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) {
+    console.error('[db] loadMachineKeys error:', error.message);
+    return null;
+  }
+  return (data || []).map(row => ({
+    id: row.id,
+    name: row.name,
+    rawKey: row.raw_key,
+    createdAt: row.created_at,
+    lastUsedAt: row.last_used_at || null,
+    revokedAt: row.revoked_at || null,
+  }));
+}
+
 module.exports = {
   enabled,
   migrate,
@@ -222,4 +296,9 @@ module.exports = {
   loadTasks,
   loadMaxSeq,
   loadMaxTaskNum,
+  saveAgentConfig,
+  deleteAgentConfig,
+  loadAgentConfigs,
+  saveMachineKey,
+  loadMachineKeys,
 };

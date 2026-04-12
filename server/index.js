@@ -751,9 +751,11 @@ app.post("/api/agent-configs", (req, res) => {
   } else {
     agentConfigs.push(config);
   }
+  const saved = agentConfigs.find((c) => c.id === config.id);
   saveAgentConfigs(agentConfigs);
+  db.saveAgentConfig(saved);
   broadcastToWeb({ type: "config_updated", configs: agentConfigs });
-  res.json({ config: agentConfigs.find((c) => c.id === config.id) });
+  res.json({ config: saved });
 });
 
 // Update agent config
@@ -764,6 +766,7 @@ app.put("/api/agents/:id/config", (req, res) => {
   if (idx < 0) return res.status(404).json({ error: "Config not found" });
   agentConfigs[idx] = { ...agentConfigs[idx], ...updates };
   saveAgentConfigs(agentConfigs);
+  db.saveAgentConfig(agentConfigs[idx]);
   broadcastToWeb({ type: "config_updated", configs: agentConfigs });
   res.json({ config: agentConfigs[idx] });
 });
@@ -775,6 +778,7 @@ app.delete("/api/agents/:id", (req, res) => {
   if (idx >= 0) {
     agentConfigs.splice(idx, 1);
     saveAgentConfigs(agentConfigs);
+    db.deleteAgentConfig(id);
   }
   // Also clean up runtime state if agent exists
   if (store.agents[id]) {
@@ -817,6 +821,7 @@ app.post("/api/machine-keys", (req, res) => {
   };
   machineKeys.push(keyRecord);
   saveMachineKeys(machineKeys);
+  db.saveMachineKey(keyRecord);
   console.log(`[keys] Generated machine key "${name}" (${rawKey.substring(0, 18)}...)`);
 
   res.json({
@@ -838,6 +843,7 @@ app.delete("/api/machine-keys/:id", (req, res) => {
   if (!key) return res.status(404).json({ error: "Key not found" });
   key.revokedAt = now();
   saveMachineKeys(machineKeys);
+  db.saveMachineKey(key);
   console.log(`[keys] Revoked machine key "${key.name}"`);
   res.json({ success: true });
 });
@@ -958,6 +964,7 @@ server.on("upgrade", (request, socket, head) => {
     if (keyRecord) {
       keyRecord.lastUsedAt = now();
       saveMachineKeys(machineKeys);
+      db.saveMachineKey(keyRecord);
     }
     wss.handleUpgrade(request, socket, head, (ws) => {
       handleDaemonConnection(ws, apiKey);
@@ -1314,12 +1321,14 @@ async function initFromDB() {
   try {
     await db.migrate();
 
-    const [maxSeq, maxTaskNum, msgs, channels, tasks] = await Promise.all([
+    const [maxSeq, maxTaskNum, msgs, channels, tasks, dbConfigs, dbKeys] = await Promise.all([
       db.loadMaxSeq(),
       db.loadMaxTaskNum(),
       db.loadMessages(),
       db.loadChannels(),
       db.loadTasks(),
+      db.loadAgentConfigs(),
+      db.loadMachineKeys(),
     ]);
 
     if (maxSeq > store.seq) store.seq = maxSeq;
@@ -1334,7 +1343,6 @@ async function initFromDB() {
       if (!store.channels.find((c) => c.id === ch.id)) {
         store.channels.push(ch);
       } else {
-        // Update description from DB
         const existing = store.channels.find((c) => c.id === ch.id);
         if (existing) existing.description = ch.description;
       }
@@ -1344,6 +1352,28 @@ async function initFromDB() {
     if (tasks.length > 0) {
       store.tasks = tasks;
       console.log(`[db] Loaded ${tasks.length} tasks`);
+    }
+
+    // Agent configs: DB wins over file when DB has entries
+    if (dbConfigs !== null && dbConfigs.length > 0) {
+      agentConfigs.length = 0;
+      agentConfigs.push(...dbConfigs);
+      console.log(`[db] Loaded ${dbConfigs.length} agent configs`);
+    } else if (dbConfigs !== null && dbConfigs.length === 0 && agentConfigs.length > 0) {
+      // DB is empty but file has configs — seed DB from file
+      for (const cfg of agentConfigs) await db.saveAgentConfig(cfg);
+      console.log(`[db] Seeded ${agentConfigs.length} agent configs to DB`);
+    }
+
+    // Machine keys: DB wins over file when DB has entries
+    if (dbKeys !== null && dbKeys.length > 0) {
+      machineKeys.length = 0;
+      machineKeys.push(...dbKeys);
+      console.log(`[db] Loaded ${dbKeys.length} machine keys`);
+    } else if (dbKeys !== null && dbKeys.length === 0 && machineKeys.length > 0) {
+      // DB is empty but file has keys — seed DB from file
+      for (const k of machineKeys) await db.saveMachineKey(k);
+      console.log(`[db] Seeded ${machineKeys.length} machine keys to DB`);
     }
   } catch (e) {
     console.error("[db] initFromDB error (continuing in-memory):", e.message);
