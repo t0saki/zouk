@@ -3,7 +3,7 @@ import { X, User, Palette, Monitor } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import GlitchTransition from './glitch/GlitchTransition';
 import ScanlineTear from './glitch/ScanlineTear';
-import { themes, type ThemeId } from '../themes';
+import { themes, type ThemeId, applyTheme } from '../themes';
 
 type Section = 'profile' | 'appearance' | 'about';
 
@@ -12,21 +12,17 @@ export default function SettingsModal() {
   const [section, setSection] = useState<Section>('profile');
   const [displayName, setDisplayName] = useState(currentUser);
   const [glitchActive, setGlitchActive] = useState(false);
-  const [pendingTheme, setPendingTheme] = useState<ThemeId | null>(null);
 
   const handleThemeChange = useCallback((newTheme: ThemeId) => {
     if (newTheme === theme) return;
-    setPendingTheme(newTheme);
+    applyTheme(newTheme);
+    setTheme(newTheme);
     setGlitchActive(true);
-  }, [theme]);
+  }, [theme, setTheme]);
 
   const handleGlitchComplete = useCallback(() => {
     setGlitchActive(false);
-    if (pendingTheme) {
-      setTheme(pendingTheme);
-      setPendingTheme(null);
-    }
-  }, [pendingTheme, setTheme]);
+  }, []);
 
   if (!settingsOpen) return null;
 
@@ -133,33 +129,36 @@ export default function SettingsModal() {
               <div className="max-w-md space-y-6">
                 <div>
                   <label className="block text-xs font-bold text-nc-muted mb-3 uppercase tracking-wider">Theme</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {themes.map((t) => (
-                      <ScanlineTear key={t.id} config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
-                        <button
-                          onClick={() => handleThemeChange(t.id)}
-                          className={`cyber-btn flex flex-col items-center gap-2 p-4 border w-full ${
-                            theme === t.id
-                              ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
-                              : 'border-nc-border hover:border-nc-cyan/50'
-                          }`}
-                        >
-                          <div
-                            className="w-full h-12 border border-nc-border flex items-center justify-center gap-1"
-                            style={{ background: t.preview.bg }}
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {themes.map((t) => {
+                      const active = theme === t.id;
+                      return (
+                        <ScanlineTear key={t.id} config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+                          <button
+                            onClick={() => handleThemeChange(t.id)}
+                            className={`cyber-btn w-full text-left border px-4 py-3 transition-all ${
+                              active
+                                ? 'border-nc-cyan bg-nc-cyan/10 shadow-nc-cyan'
+                                : 'border-nc-border hover:border-nc-cyan/50 hover:bg-nc-elevated/50'
+                            }`}
                           >
-                            <div className="w-3 h-6 rounded-sm" style={{ background: t.preview.surface }} />
-                            <div className="flex-1 h-6 rounded-sm flex items-center justify-center" style={{ background: t.preview.surface }}>
-                              <div className="w-4 h-1 rounded-full" style={{ background: t.preview.accent }} />
+                            <div className="mb-3 h-1.5 w-full" style={{ background: t.preview.accent }} />
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="font-display font-bold text-sm tracking-wider text-nc-text-bright uppercase">{t.name}</div>
+                                <div className="mt-1 text-2xs text-nc-muted leading-relaxed">{t.description}</div>
+                              </div>
+                              <span
+                                className={`status-chip-sm ${active ? 'tone-telemetry' : 'tone-neutral'}`}
+                                style={!active ? { color: t.preview.text, borderColor: `${t.preview.accent}55` } : undefined}
+                              >
+                                {active ? 'ACTIVE' : 'LOAD'}
+                              </span>
                             </div>
-                          </div>
-                          <div className="text-center">
-                            <div className="font-bold text-sm text-nc-text-bright">{t.name}</div>
-                            <div className="text-2xs text-nc-muted">{t.description}</div>
-                          </div>
-                        </button>
-                      </ScanlineTear>
-                    ))}
+                          </button>
+                        </ScanlineTear>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

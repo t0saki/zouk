@@ -3,7 +3,7 @@ import { useApp } from '../store/AppContext';
 import { useState, useEffect, useCallback } from 'react';
 import GlitchTransition from './glitch/GlitchTransition';
 import ScanlineTear from './glitch/ScanlineTear';
-import { themes, type ThemeId } from '../themes';
+import { themes, applyTheme } from '../themes';
 import { ncStyle, isNightCity } from '../lib/themeUtils';
 
 const GLITCH_CHARS = '!<>-_\\/[]{}#$%^&*=+|;:0123456789ABCDEF';
@@ -159,7 +159,7 @@ export default function LoginScreen() {
             <div className="h-px flex-1 bg-nc-border" />
           </div>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
             {themes.map((t) => {
               const active = theme === t.id;
               return (
@@ -168,34 +168,47 @@ export default function LoginScreen() {
                   onClick={() => {
                     if (!active) {
                       setPendingAction(null);
+                      applyTheme(t.id);
+                      setTheme(t.id);
                       setGlitchActive(true);
-                      setTimeout(() => setTheme(t.id), 250);
                     }
                   }}
-                  className="flex-1 group relative py-2 px-1 border text-center transition-all duration-200 overflow-hidden"
+                  className="group relative overflow-hidden border px-3 py-3 text-left transition-all duration-200"
                   style={{
                     borderColor: active ? t.preview.accent : 'rgb(var(--nc-border))',
-                    background: active ? t.preview.accent + '18' : 'transparent',
+                    background: active ? `${t.preview.accent}18` : 'rgb(var(--nc-panel) / 0.45)',
+                    boxShadow: active ? `0 0 0 1px ${t.preview.accent}30` : 'none',
                   }}
                 >
                   <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    style={{ background: t.preview.accent + '10' }}
+                    className="absolute left-0 right-0 top-0 h-1 opacity-90"
+                    style={{ background: t.preview.accent }}
                   />
-                  <div className="flex items-center justify-center gap-1.5 relative">
-                    <div
-                      className="w-2.5 h-2.5 border"
-                      style={{
-                        background: t.preview.bg,
-                        borderColor: t.preview.accent,
-                        boxShadow: active ? `0 0 6px ${t.preview.accent}40` : 'none',
-                      }}
-                    />
+                  <div
+                    className="absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                    style={{ background: `${t.preview.accent}10` }}
+                  />
+                  <div className="relative flex items-start justify-between gap-3">
+                    <div>
+                      <div
+                        className="text-xs font-bold font-mono tracking-[0.18em]"
+                        style={{ color: active ? t.preview.accent : t.preview.text }}
+                      >
+                        {t.name.toUpperCase()}
+                      </div>
+                      <div className="mt-1 text-[10px] uppercase tracking-[0.16em] text-nc-muted">
+                        {t.description}
+                      </div>
+                    </div>
                     <span
-                      className="text-2xs font-bold font-mono tracking-wider"
-                      style={{ color: active ? t.preview.accent : 'rgb(var(--nc-muted))' }}
+                      className="status-chip-sm"
+                      style={{
+                        color: active ? t.preview.accent : t.preview.text,
+                        borderColor: `${t.preview.accent}55`,
+                        background: active ? `${t.preview.accent}18` : `${t.preview.accent}10`,
+                      }}
                     >
-                      {t.name.toUpperCase()}
+                      {active ? 'ACTIVE' : 'SWITCH'}
                     </span>
                   </div>
                 </button>
