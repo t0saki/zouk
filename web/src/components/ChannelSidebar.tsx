@@ -165,7 +165,7 @@ export default function ChannelSidebar() {
                 <Bot size={14} className="flex-shrink-0" />
                 <span className="truncate text-sm">{agent.displayName || agent.name}</span>
                 <div className="ml-auto flex items-center gap-1.5">
-                  {agent.status === 'active' && (
+                  {agent.status === 'active' && !isGuest && (
                     <span
                       role="button"
                       onClick={(e) => {

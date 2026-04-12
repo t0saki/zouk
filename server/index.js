@@ -977,9 +977,11 @@ server.on("upgrade", (request, socket, head) => {
       handleDaemonConnection(ws, apiKey);
     });
   } else if (parsed.pathname === "/ws") {
-    // Web UI WebSocket connection
+    // Web UI WebSocket connection — check optional auth token
+    const wsToken = parsed.searchParams.get("token");
+    const wsAuthenticated = !!(wsToken && authSessions.has(wsToken));
     wss.handleUpgrade(request, socket, head, (ws) => {
-      handleWebConnection(ws);
+      handleWebConnection(ws, wsAuthenticated);
     });
   } else {
     socket.destroy();
@@ -1134,9 +1136,18 @@ function handleDaemonMessage(ws, msg, connectedAgents) {
   }
 }
 
-function handleWebConnection(ws) {
+// WS message types that require authentication (write operations)
+const WS_AUTH_REQUIRED_TYPES = new Set([
+  "agent:start",
+  "agent:stop",
+  "agent:reset-workspace",
+  "machine:workspace:delete",
+]);
+
+function handleWebConnection(ws, authenticated) {
+  ws._authenticated = !!authenticated;
   webSockets.add(ws);
-  console.log("[web] Client connected");
+  console.log(`[web] Client connected (authenticated: ${ws._authenticated})`);
 
   // Send initial state
   ws.send(JSON.stringify({
@@ -1164,6 +1175,13 @@ function handleWebConnection(ws) {
 }
 
 function handleWebMessage(ws, msg) {
+  // Block write-type messages from unauthenticated (guest) connections
+  if (WS_AUTH_REQUIRED_TYPES.has(msg.type) && !ws._authenticated) {
+    ws.send(JSON.stringify({ type: "error", message: "Authentication required. Sign in with Google to perform this action." }));
+    console.log(`[web] Blocked unauthenticated WS message: ${msg.type}`);
+    return;
+  }
+
   switch (msg.type) {
     case "workspace:list": {
       const agentWs = daemonSockets.get(msg.agentId);
