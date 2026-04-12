@@ -113,7 +113,7 @@ function ConfigStartButton({
 }
 
 export default function AgentsView() {
-  const { agents, configs, machines, startAgent, stopAgent, updateAgentConfig } = useApp();
+  const { agents, configs, machines, startAgent, stopAgent, updateAgentConfig, isGuest } = useApp();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -285,7 +285,7 @@ export default function AgentsView() {
               <p className="text-sm text-nc-muted font-bold font-mono">
                 {showArchived ? 'NO_ARCHIVED_AGENTS' : 'NO_AGENTS_FOUND'}
               </p>
-              {!showArchived && (
+              {!showArchived && !isGuest && (
                 <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
                   <button
                     onClick={() => setShowCreate(true)}
@@ -321,7 +321,7 @@ export default function AgentsView() {
         )}
       </div>
 
-      {showCreate && (
+      {showCreate && !isGuest && (
         <CreateAgentDialog
           machines={machines}
           onClose={() => setShowCreate(false)}
