@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { X, User, Palette, Monitor } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import GlitchTransition from './glitch/GlitchTransition';
-import GlitchText from './glitch/GlitchText';
 import ScanlineTear from './glitch/ScanlineTear';
 import { themes, type ThemeId, applyTheme } from '../themes';
 
@@ -138,11 +137,12 @@ export default function SettingsModal() {
                       return (
                         <ScanlineTear key={t.id} config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
                           <button
+                            aria-pressed={active}
                             onClick={() => handleThemeChange(t.id)}
                             className={`relative min-h-[88px] w-full overflow-hidden px-4 py-4 text-center transition-all duration-200 ${
                               isNight
-                                ? 'cyber-btn cyber-bevel-sm glitch-hover scanline-overlay font-display uppercase tracking-[0.18em]'
-                                : 'font-display font-black uppercase tracking-[0.14em]'
+                                ? 'theme-preview-night-city font-display uppercase tracking-[0.18em]'
+                                : 'theme-preview-brutalist font-display font-black uppercase tracking-[0.14em]'
                             }`}
                             style={{
                               border: isBrutalist ? '3px solid #171717' : `1px solid ${active ? t.preview.accent : `${t.preview.accent}88`}`,
@@ -166,8 +166,8 @@ export default function SettingsModal() {
                                 }} />
                               </>
                             )}
-                            <span className="relative flex h-full items-center justify-center text-sm">
-                              {isNight ? <GlitchText intensity="high">{t.name}</GlitchText> : t.name}
+                            <span className="theme-preview-label relative flex h-full items-center justify-center text-sm" data-text={t.name}>
+                              {t.name}
                             </span>
                           </button>
                         </ScanlineTear>

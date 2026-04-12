@@ -240,6 +240,84 @@
   .scanline-overlay {
     position: relative;
   }
+
+  /* Theme preview buttons in selectors should render their own theme style,
+     independent from the current html[data-theme]. */
+  .theme-preview-night-city,
+  .theme-preview-brutalist {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .theme-preview-label {
+    position: relative;
+    z-index: 1;
+  }
+
+  .theme-preview-night-city {
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+
+  .theme-preview-night-city::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+    transform: translateX(-110%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .theme-preview-night-city::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.14;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(94, 246, 255, 0.18) 2px, rgba(94, 246, 255, 0.18) 4px);
+    z-index: 0;
+  }
+
+  .theme-preview-night-city:hover::before {
+    transform: translateX(110%);
+    transition: transform 320ms ease;
+  }
+
+  .theme-preview-night-city:hover {
+    animation: cp-hue-strobe 420ms linear 1;
+  }
+
+  .theme-preview-night-city .theme-preview-label::before,
+  .theme-preview-night-city .theme-preview-label::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .theme-preview-night-city:hover .theme-preview-label::before,
+  .theme-preview-night-city:hover .theme-preview-label::after,
+  .theme-preview-night-city[aria-pressed='true'] .theme-preview-label::before,
+  .theme-preview-night-city[aria-pressed='true'] .theme-preview-label::after {
+    opacity: 0.72;
+  }
+
+  .theme-preview-night-city .theme-preview-label::before {
+    color: rgb(94 246 255);
+    transform: translateX(-1px);
+    clip-path: inset(0 0 45% 0);
+  }
+
+  .theme-preview-night-city .theme-preview-label::after {
+    color: rgb(247 80 73);
+    transform: translateX(1px);
+    clip-path: inset(45% 0 0 0);
+  }
+
+  .theme-preview-brutalist {
+    clip-path: none;
+  }
 }
 
 /* ==========================================================================

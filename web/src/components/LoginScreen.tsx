@@ -2,7 +2,6 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useApp } from '../store/AppContext';
 import { useState, useEffect, useCallback } from 'react';
 import GlitchTransition from './glitch/GlitchTransition';
-import GlitchText from './glitch/GlitchText';
 import ScanlineTear from './glitch/ScanlineTear';
 import { themes, applyTheme } from '../themes';
 import { ncStyle, isNightCity } from '../lib/themeUtils';
@@ -169,6 +168,7 @@ export default function LoginScreen() {
               return (
                 <button
                   key={t.id}
+                  aria-pressed={active}
                   onClick={() => {
                     if (!active) {
                       setPendingAction(null);
@@ -179,8 +179,8 @@ export default function LoginScreen() {
                   }}
                   className={`relative min-h-[88px] overflow-hidden px-4 py-4 text-center transition-all duration-200 ${
                     isNight
-                      ? 'cyber-btn cyber-bevel-sm glitch-hover scanline-overlay font-display uppercase tracking-[0.18em]'
-                      : 'font-display font-black tracking-[0.14em] uppercase'
+                      ? 'theme-preview-night-city font-display uppercase tracking-[0.18em]'
+                      : 'theme-preview-brutalist font-display font-black tracking-[0.14em] uppercase'
                   }`}
                   style={{
                     border: isBrutalist ? '3px solid #171717' : `1px solid ${active ? t.preview.accent : `${t.preview.accent}88`}`,
@@ -204,8 +204,8 @@ export default function LoginScreen() {
                       }} />
                     </>
                   )}
-                  <span className="relative flex h-full items-center justify-center text-sm">
-                    {isNight ? <GlitchText intensity="high">{t.name}</GlitchText> : t.name}
+                  <span className="theme-preview-label relative flex h-full items-center justify-center text-sm" data-text={t.name}>
+                    {t.name}
                   </span>
                 </button>
               );
