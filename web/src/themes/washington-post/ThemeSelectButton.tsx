@@ -104,7 +104,6 @@ export default function WashingtonPostThemeSelectButton({ selected, onClick }: P
     >
       <span className="wp-theme-btn__kicker">Editorial Theme</span>
       <span className="wp-theme-btn__title">Post Script</span>
-      <span className="wp-theme-btn__note">hand-marked notes</span>
     </button>
   );
 }
