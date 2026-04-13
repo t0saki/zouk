@@ -62,8 +62,8 @@ export function useGlitch<T extends HTMLElement>(config: GlitchConfig = {}) {
     let severityMultiplier = 1;
     if (trigger === 'hover' && hoverStartTimeRef.current !== null) {
       const elapsedHoverTime = Date.now() - hoverStartTimeRef.current;
-      // Over 5 seconds, reduce severity by 50%
-      severityMultiplier = Math.max(0.2, 1 - (elapsedHoverTime / 10000));
+      // Almost disappear after 2 seconds
+      severityMultiplier = Math.max(0.05, 1 - (elapsedHoverTime / 2000));
     }
 
     const severity = rand(minSeverity, maxSeverity) * severityMultiplier;
@@ -89,8 +89,8 @@ export function useGlitch<T extends HTMLElement>(config: GlitchConfig = {}) {
     
     if (trigger === 'hover' && hoverStartTimeRef.current !== null) {
       const elapsedHoverTime = Date.now() - hoverStartTimeRef.current;
-      // Over 10 seconds, scale interval up to 3x the base
-      const intervalMultiplier = Math.min(3, 1 + (elapsedHoverTime / 5000));
+      // Scale interval up very quickly after 2 seconds
+      const intervalMultiplier = Math.min(10, 1 + (elapsedHoverTime / 500));
       baseMin *= intervalMultiplier;
       baseMax *= intervalMultiplier;
     }
