@@ -221,7 +221,7 @@ async function saveAgentConfig(config) {
     display_name: config.displayName || config.name,
     runtime: config.runtime || 'claude',
     model: config.model || null,
-    system_prompt: config.systemPrompt || null,
+    system_prompt: config.systemPrompt || config.description || null,
     skills: config.skills || [],
     work_dir: config.workDir || null,
     description: config.description || null,
