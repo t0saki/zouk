@@ -165,6 +165,16 @@ export async function logout(token: string): Promise<void> {
   });
 }
 
+export async function updateUserProfile(name: string): Promise<{ user: AuthUser }> {
+  const res = await fetch(`${getBaseUrl()}/api/auth/profile`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) throw new Error('Failed to update profile');
+  return res.json();
+}
+
 export interface AuthUser {
   name: string;
   email: string;

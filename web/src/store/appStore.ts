@@ -380,10 +380,24 @@ export function useAppStore() {
   const updateCurrentUser = useCallback((name: string) => {
     localStorage.setItem(CURRENT_USER_KEY, name);
     setCurrentUser(name);
+    // Persist to Supabase if logged in
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (token) {
+      api.updateUserProfile(name).then(({ user }) => {
+        const stored = localStorage.getItem(AUTH_USER_KEY);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            localStorage.setItem(AUTH_USER_KEY, JSON.stringify({ ...parsed, name: user.name }));
+          } catch { /* ignore */ }
+        }
+      }).catch(() => {});
+    }
   }, []);
 
   const loginWithGoogle = useCallback(async (credential: string) => {
     const { token, user } = await api.googleLogin(credential);
+    // Server already uses email prefix as name; use it as display name
     localStorage.setItem(AUTH_TOKEN_KEY, token);
     localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
     localStorage.setItem(CURRENT_USER_KEY, user.name);

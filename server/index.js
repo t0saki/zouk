@@ -813,6 +813,10 @@ app.put("/api/agents/:id/config", requireAuth, (req, res) => {
     idx = agentConfigs.length - 1;
   }
   agentConfigs[idx] = { ...agentConfigs[idx], ...updates };
+  // description is the system prompt — keep them in sync
+  if (updates.description !== undefined && updates.systemPrompt === undefined) {
+    agentConfigs[idx].systemPrompt = updates.description;
+  }
   saveAgentConfigs(agentConfigs);
   db.saveAgentConfig(agentConfigs[idx]);
   broadcastToWeb({ type: "config_updated", configs: agentConfigs });
@@ -944,7 +948,7 @@ function startAgentOnDaemon(id, config) {
       runtime,
       model: store.agents[id].model,
       workDir: store.agents[id].workDir,
-      systemPrompt: config.systemPrompt || "",
+      systemPrompt: config.systemPrompt || config.description || "",
       serverUrl: PUBLIC_URL,
       authToken: "test",
       name: store.agents[id].name,
@@ -1128,7 +1132,15 @@ function handleDaemonMessage(ws, msg, connectedAgents) {
           daemonSockets.set(agentId, ws);
           const isNew = !store.agents[agentId];
           if (isNew) {
-            store.agents[agentId] = { name: agentId, displayName: agentId, runtime: "claude", model: "unknown", status: "active" };
+            const cfg = agentConfigs.find((c) => c.id === agentId);
+            store.agents[agentId] = {
+              name: cfg?.name || agentId,
+              displayName: cfg?.displayName || cfg?.name || agentId,
+              runtime: cfg?.runtime || "claude",
+              model: cfg?.model || "unknown",
+              workDir: cfg?.workDir,
+              status: "active",
+            };
           }
           store.agents[agentId].status = "active";
           if (isNew) {
@@ -1146,7 +1158,16 @@ function handleDaemonMessage(ws, msg, connectedAgents) {
       daemonSockets.set(agentId, ws);
       const isNew = !store.agents[agentId];
       if (isNew) {
-        store.agents[agentId] = { name: agentId, displayName: agentId, runtime: "claude", model: "unknown", status, machineId: ws._machineId };
+        const cfg = agentConfigs.find((c) => c.id === agentId);
+        store.agents[agentId] = {
+          name: cfg?.name || agentId,
+          displayName: cfg?.displayName || cfg?.name || agentId,
+          runtime: cfg?.runtime || "claude",
+          model: cfg?.model || "unknown",
+          workDir: cfg?.workDir,
+          status,
+          machineId: ws._machineId,
+        };
       }
       store.agents[agentId].status = status;
       store.agents[agentId].machineId = ws._machineId;
@@ -1416,9 +1437,10 @@ app.post("/api/auth/google", async (req, res) => {
     });
     const payload = ticket.getPayload();
     const sessionToken = crypto.randomBytes(32).toString("hex");
-    const rawName = payload.name || payload.email.split("@")[0];
+    // Use email prefix as default display name (e.g. "zaynjarvis" from "zaynjarvis@gmail.com")
+    const emailPrefix = payload.email.split("@")[0];
     const user = {
-      name: rawName.replace(/\s+/g, "-"),
+      name: emailPrefix,
       email: payload.email,
       picture: payload.picture || null,
     };
@@ -1452,6 +1474,27 @@ app.post("/api/auth/logout", (req, res) => {
     removeSession(token).catch(e => console.warn("[auth] removeSession error:", e.message));
   }
   res.json({ ok: true });
+});
+
+app.put("/api/auth/profile", requireAuth, (req, res) => {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+  const { name } = req.body;
+  if (!name || typeof name !== "string" || !name.trim()) {
+    return res.status(400).json({ error: "name required" });
+  }
+  const trimmed = name.trim();
+  const user = authSessions.get(token);
+  if (!user) return res.status(401).json({ error: "Not authenticated" });
+  const oldName = user.name;
+  user.name = trimmed;
+  authSessions.set(token, user);
+  // Update human record
+  const human = store.humans.find((h) => h.name === oldName);
+  if (human) human.name = trimmed;
+  else if (!store.humans.find((h) => h.name === trimmed)) store.humans.push({ name: trimmed });
+  db.saveSession(token, user).catch(e => console.warn("[auth] saveSession error:", e.message));
+  broadcastToWeb({ type: "humans_updated", humans: store.humans });
+  res.json({ user });
 });
 
 app.get("/api/auth/config", (_req, res) => {

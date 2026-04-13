@@ -504,7 +504,7 @@ function SettingsTab({
             {isDirty && (
               <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
                 <button
-                  onClick={() => onUpdate({ displayName, description, visibility, maxConcurrentTasks: maxConcurrent })}
+                  onClick={() => onUpdate({ displayName, description, systemPrompt: description, visibility, maxConcurrentTasks: maxConcurrent })}
                   className="cyber-btn flex items-center gap-1 px-4 py-2 border border-nc-cyan bg-nc-cyan/10 text-sm font-bold text-nc-cyan hover:bg-nc-cyan/20 hover:shadow-nc-cyan font-mono"
                 >
                   <Save size={12} /> SAVE
