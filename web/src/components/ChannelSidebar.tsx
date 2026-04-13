@@ -116,7 +116,7 @@ export default function ChannelSidebar() {
                 key={ch.id}
                 onClick={() => selectChannel(ch.name)}
                 className={`
-                  w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-75 group
+                  w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-75 group mb-1
                   ${isActive
                     ? (nc
                         ? 'bg-nc-cyan/10 border-l-2 border-nc-cyan text-nc-cyan font-bold'
@@ -156,7 +156,7 @@ export default function ChannelSidebar() {
                 key={agent.id}
                 onClick={() => selectChannel(agent.name, true)}
                 className={`
-                  w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-75 group
+                  w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-75 group mb-1
                   ${isActive
                     ? (nc
                         ? 'bg-nc-green/10 border-l-2 border-nc-green text-nc-green font-bold'
@@ -212,7 +212,7 @@ export default function ChannelSidebar() {
               key={h.id}
               onClick={() => selectChannel(h.name, true)}
               className={`
-                w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-100
+                w-full flex items-center gap-2 px-3 py-1.5 text-left transition-all duration-100 mb-1
                 ${activeChannelName === h.name
                   ? 'bg-nc-magenta/10 border-l-2 border-nc-magenta text-nc-magenta font-bold'
                   : 'text-nc-muted hover:bg-nc-elevated hover:text-nc-text'
