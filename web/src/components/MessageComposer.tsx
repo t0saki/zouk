@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Paperclip, Slash } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import { buildMentionSearchTerms, MENTION_QUERY_REGEX, toMentionHandle } from '../lib/mentions';
 
@@ -146,9 +146,9 @@ export default function MessageComposer({ threadTarget, placeholder }: { threadT
   }
 
   return (
-    <div className="px-5 pb-4 pt-2 relative">
+    <div className="px-4 sm:px-6 pb-4 pt-2 relative max-w-4xl mx-auto w-full">
       {mentionQuery !== null && mentionMatches.length > 0 && (
-        <div className="absolute bottom-full left-5 right-5 mb-1 border border-nc-border bg-nc-surface z-20 max-h-[240px] overflow-y-auto shadow-nc-panel">
+        <div className="absolute bottom-full left-4 right-4 sm:left-6 sm:right-6 mb-1 border border-nc-border bg-nc-surface z-20 max-h-[240px] overflow-y-auto shadow-nc-panel">
           {mentionMatches.map((match, i) => (
             <button
               key={`${match.type}:${match.mention}`}
@@ -175,7 +175,8 @@ export default function MessageComposer({ threadTarget, placeholder }: { threadT
         </div>
       )}
 
-      <div className="flex items-stretch border border-nc-border bg-nc-surface focus-within:border-nc-cyan focus-within:shadow-nc-cyan cyber-bevel-sm">
+      <div className="flex flex-col border border-nc-border bg-nc-surface focus-within:border-nc-cyan focus-within:shadow-nc-cyan cyber-bevel-sm">
+        {/* Textarea */}
         <textarea
           ref={textareaRef}
           value={text}
@@ -183,22 +184,55 @@ export default function MessageComposer({ threadTarget, placeholder }: { threadT
           onKeyDown={handleKeyDown}
           placeholder={placeholder || `Message ${channelLabel}`}
           rows={1}
-          className="flex-1 px-3 py-2.5 bg-transparent text-base sm:text-sm font-body text-nc-text placeholder:text-nc-muted resize-none focus:outline-none min-h-[46px]"
+          className="flex-1 px-3 pt-3 pb-1 bg-transparent text-base sm:text-sm font-body text-nc-text placeholder:text-nc-muted resize-none focus:outline-none min-h-[44px]"
         />
 
-        <button
-          onClick={handleSubmit}
-          disabled={!text.trim()}
-          className={`
-            cyber-btn flex items-center justify-center w-11 border-l border-nc-border flex-shrink-0 self-stretch glitch-text
-            ${text.trim()
-              ? 'bg-nc-cyan/15 text-nc-cyan hover:bg-nc-cyan/25'
-              : 'bg-nc-elevated text-nc-muted cursor-not-allowed'
-            }
-          `}
-        >
-          <Send size={14} />
-        </button>
+        {/* Toolbar row */}
+        <div className="flex items-center gap-1 px-2 pb-1.5">
+          {/* Slash command hint */}
+          <button
+            type="button"
+            title="Slash commands (coming soon)"
+            className="w-7 h-7 flex items-center justify-center text-nc-muted hover:text-nc-cyan transition-colors opacity-50 cursor-default"
+            tabIndex={-1}
+          >
+            <Slash size={13} />
+          </button>
+          {/* Attachment hint */}
+          <button
+            type="button"
+            title="Attach file (coming soon)"
+            className="w-7 h-7 flex items-center justify-center text-nc-muted hover:text-nc-cyan transition-colors opacity-50 cursor-default"
+            tabIndex={-1}
+          >
+            <Paperclip size={13} />
+          </button>
+
+          <div className="flex-1" />
+
+          {/* Hint text */}
+          {!text.trim() && (
+            <span className="text-2xs text-nc-muted/50 font-mono hidden sm:block">
+              Enter to send · Shift+Enter for newline
+            </span>
+          )}
+
+          {/* Send button */}
+          <button
+            onClick={handleSubmit}
+            disabled={!text.trim()}
+            className={`
+              cyber-btn flex items-center justify-center h-7 px-3 gap-1.5 border border-nc-border flex-shrink-0 text-xs font-mono glitch-text transition-colors
+              ${text.trim()
+                ? 'bg-nc-cyan/15 text-nc-cyan border-nc-cyan/50 hover:bg-nc-cyan/25'
+                : 'bg-nc-elevated text-nc-muted cursor-not-allowed'
+              }
+            `}
+          >
+            <Send size={12} />
+            <span className="hidden sm:inline">Send</span>
+          </button>
+        </div>
       </div>
     </div>
   );
