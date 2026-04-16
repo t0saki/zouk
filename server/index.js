@@ -820,6 +820,22 @@ app.get("/api/agent-configs", (req, res) => {
   res.json({ configs: agentConfigs });
 });
 
+// Mirror config fields that also live on the runtime agent record. Without
+// this, edits land in agentConfigs (and Supabase) but the live `store.agents`
+// keeps the old values until the next server restart — so the sidebar / detail
+// header keep showing the pre-rename name even though the user clicked SAVE.
+function syncRuntimeAgentFromConfig(id, config) {
+  const a = store.agents[id];
+  if (!a) return false;
+  let changed = false;
+  if (config.name !== undefined && config.name !== a.name) { a.name = config.name; changed = true; }
+  if (config.displayName !== undefined && config.displayName !== a.displayName) { a.displayName = config.displayName; changed = true; }
+  if (config.runtime !== undefined && config.runtime !== a.runtime) { a.runtime = config.runtime; changed = true; }
+  if (config.model !== undefined && config.model !== a.model) { a.model = config.model; changed = true; }
+  if (config.workDir !== undefined && config.workDir !== a.workDir) { a.workDir = config.workDir; changed = true; }
+  return changed;
+}
+
 // Create/save agent config
 app.post("/api/agent-configs", requireAuth, (req, res) => {
   const config = req.body;
@@ -833,6 +849,9 @@ app.post("/api/agent-configs", requireAuth, (req, res) => {
   const saved = agentConfigs.find((c) => c.id === config.id);
   saveAgentConfigs(agentConfigs);
   db.saveAgentConfig(saved);
+  if (syncRuntimeAgentFromConfig(saved.id, saved)) {
+    broadcastToWeb({ type: "agent_started", agent: { id: saved.id, ...store.agents[saved.id] } });
+  }
   broadcastToWeb({ type: "config_updated", configs: agentConfigs });
   res.json({ config: saved });
 });
@@ -862,6 +881,9 @@ app.put("/api/agents/:id/config", requireAuth, (req, res) => {
   }
   saveAgentConfigs(agentConfigs);
   db.saveAgentConfig(agentConfigs[idx]);
+  if (syncRuntimeAgentFromConfig(id, agentConfigs[idx])) {
+    broadcastToWeb({ type: "agent_started", agent: { id, ...store.agents[id] } });
+  }
   broadcastToWeb({ type: "config_updated", configs: agentConfigs });
   res.json({ config: agentConfigs[idx] });
 });
@@ -869,6 +891,14 @@ app.put("/api/agents/:id/config", requireAuth, (req, res) => {
 // Delete agent config
 app.delete("/api/agents/:id", requireAuth, (req, res) => {
   const { id } = req.params;
+  // Tell the daemon to stop the process and drop any idle-restart cache for
+  // this agent. Without this, the daemon keeps the process (or the
+  // idleAgentConfigs entry) and re-announces the agent on its next reconnect,
+  // which rebuilds an orphan store.agents[id] with fallback metadata.
+  const ws = daemonSockets.get(id);
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ type: "agent:stop", agentId: id }));
+  }
   const idx = agentConfigs.findIndex((c) => c.id === id);
   if (idx >= 0) {
     agentConfigs.splice(idx, 1);
