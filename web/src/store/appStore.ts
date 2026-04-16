@@ -186,11 +186,23 @@ export function useAppStore() {
       }
       case 'agent_activity': {
         const e = event as { agentId: string; activity: string; detail?: string; entries?: unknown[] };
-        setAgents(prev => prev.map(a =>
-          a.id === e.agentId
-            ? { ...a, activity: e.activity as ServerAgent['activity'], activityDetail: e.detail, entries: e.entries as ServerAgent['entries'] }
-            : a
-        ));
+        // Daemon sends deltas — each message carries only the new trajectory
+        // entries for this activity change (heartbeats omit `entries`). Append
+        // to the running log instead of replacing so the Activity tab keeps
+        // history. Cap length to avoid unbounded growth.
+        const incoming = (e.entries as ServerAgent['entries'] | undefined) || [];
+        setAgents(prev => prev.map(a => {
+          if (a.id !== e.agentId) return a;
+          const nextEntries = incoming.length > 0
+            ? [...(a.entries || []), ...incoming].slice(-500)
+            : a.entries;
+          return {
+            ...a,
+            activity: e.activity as ServerAgent['activity'],
+            activityDetail: e.detail,
+            entries: nextEntries,
+          };
+        }));
         break;
       }
       case 'daemon_connected':
@@ -213,7 +225,11 @@ export function useAppStore() {
           const idx = prev.findIndex(a => a.id === e.agent.id);
           if (idx >= 0) {
             const copy = [...prev];
-            copy[idx] = e.agent;
+            // `agent_started` is also fired on reconnect/restore — the payload
+            // doesn't carry trajectory entries, so preserve any activity log
+            // we've already accumulated locally.
+            const preservedEntries = e.agent.entries ?? copy[idx].entries;
+            copy[idx] = { ...e.agent, entries: preservedEntries };
             return copy;
           }
           return [...prev, e.agent];
@@ -273,6 +289,10 @@ export function useAppStore() {
 
   useEffect(() => {
     let cancelled = false;
+    // Clear immediately so that if the fetch fails (e.g. an intermediate proxy
+    // returns a cached 304 for a different URL), the previous channel's
+    // messages don't linger while the new title is already shown.
+    setMessages([]);
     setLoadingMessages(true);
     const isDm = viewModeRef.current === 'dm';
     api.fetchMessages(activeChannelName, isDm, 200, isDm ? currentUserRef.current : undefined).then(msgs => {
@@ -286,7 +306,10 @@ export function useAppStore() {
         });
       }
     }).catch(() => {
-      if (!cancelled) setLoadingMessages(false);
+      if (!cancelled) {
+        setMessages([]);
+        setLoadingMessages(false);
+      }
     });
     return () => { cancelled = true; };
   }, [activeChannelName, viewMode]);
