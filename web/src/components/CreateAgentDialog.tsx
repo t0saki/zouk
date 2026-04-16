@@ -1,38 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { X, Plus, ChevronDown, Globe, Lock, Server, AlertTriangle } from 'lucide-react';
-import type { ServerMachine } from '../types';
+import type { RuntimeMeta, ServerMachine } from '../types';
 import ScanlineTear from './glitch/ScanlineTear';
 import { ncStyle } from '../lib/themeUtils';
-
-const MODELS_BY_PROVIDER: Record<string, string[]> = {
-  claude: ['opus', 'sonnet', 'haiku'],
-  codex: ['gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'],
-  hermes: ['gpt-5.4', 'seed-code'],
-  opencode: ['gpt-5.4', 'o3'],
-  openclaw: ['gpt-5.4'],
-  kimi: ['kimi-latest'],
-  vikingbot: [],
-};
-
-const DEFAULT_MODELS: Record<string, string> = {
-  claude: 'sonnet',
-  codex: 'gpt-5.4',
-  hermes: 'seed-code',
-  opencode: 'gpt-5.4',
-  openclaw: 'gpt-5.4',
-  kimi: 'kimi-latest',
-  vikingbot: '',
-};
-
-const RUNTIME_LABELS: Record<string, string> = {
-  hermes: 'Hermes Agent',
-  claude: 'Claude Code',
-  codex: 'OpenAI Codex',
-  opencode: 'OpenCode',
-  openclaw: 'OpenClaw',
-  kimi: 'Kimi',
-  vikingbot: 'VikingBot',
-};
 
 export interface CreateAgentConfig {
   name: string;
@@ -60,28 +30,49 @@ export default function CreateAgentDialog({
   const [selectedMachineId, setSelectedMachineId] = useState<string>(machines[0]?.id ?? '');
   const [runtime, setRuntime] = useState('');
   const [model, setModel] = useState('');
+  const [customModel, setCustomModel] = useState(false);
   const [visibility, setVisibility] = useState<'workspace' | 'private'>('workspace');
   const [machineOpen, setMachineOpen] = useState(false);
-  const [runtimeOpen, setRuntimeOpen] = useState(false);
 
   const selectedMachine = machines.find(m => m.id === selectedMachineId);
-  const machineRuntimes = useMemo(() => selectedMachine?.runtimes || [], [selectedMachine]);
-
-  useEffect(() => {
-    if (machineRuntimes.length > 0 && !machineRuntimes.includes(runtime)) {
-      setRuntime(machineRuntimes[0]);
-    } else if (machineRuntimes.length === 0 && !runtime) {
-      setRuntime('hermes');
+  // Build a runtime catalog from the selected machine. Fall back to deriving entries
+  // from `runtimes` so older daemons (no catalog) still produce something usable.
+  const runtimeCatalog: RuntimeMeta[] = useMemo(() => {
+    if (!selectedMachine) return [];
+    if (selectedMachine.runtimeCatalog && selectedMachine.runtimeCatalog.length) {
+      return selectedMachine.runtimeCatalog;
     }
-  }, [selectedMachineId, machineRuntimes, runtime]);
+    return (selectedMachine.runtimes || []).map((id) => ({ id, displayName: id, models: [] }));
+  }, [selectedMachine]);
+  const runtimeIds = useMemo(() => runtimeCatalog.map(r => r.id), [runtimeCatalog]);
+  const currentRuntimeMeta = useMemo(
+    () => runtimeCatalog.find(r => r.id === runtime),
+    [runtimeCatalog, runtime],
+  );
+  const suggestedModels = useMemo(
+    () => currentRuntimeMeta?.models ?? [],
+    [currentRuntimeMeta],
+  );
 
+  // Keep `runtime` in sync with what the selected machine actually offers.
   useEffect(() => {
-    const runtimeModels = MODELS_BY_PROVIDER[runtime] || [];
-    setModel(DEFAULT_MODELS[runtime] || runtimeModels[0] || '');
-  }, [runtime]);
+    if (runtimeIds.length === 0) {
+      if (runtime) setRuntime('');
+      return;
+    }
+    if (!runtimeIds.includes(runtime)) {
+      setRuntime(runtimeIds[0]);
+    }
+  }, [runtimeIds, runtime]);
 
-  const models = MODELS_BY_PROVIDER[runtime] || [];
-  const canSubmit = name.trim().length > 0 && runtime;
+  // When runtime changes, reset model to its default suggestion (or empty for free-form).
+  useEffect(() => {
+    const next = currentRuntimeMeta?.defaultModel || suggestedModels[0] || '';
+    setModel(next);
+    setCustomModel(false);
+  }, [currentRuntimeMeta, suggestedModels]);
+
+  const canSubmit = name.trim().length > 0 && runtime.length > 0;
   const workDir = `~/.zouk/agents/${name.trim().toLowerCase() || '<name>'}`;
 
   const handleSubmit = () => {
@@ -91,7 +82,7 @@ export default function CreateAgentDialog({
       name: agentName,
       description: description.trim(),
       runtime,
-      model,
+      model: model.trim(),
       machineId: selectedMachine?.id,
       visibility,
       workDir: `~/.zouk/agents/${agentName}`,
@@ -216,51 +207,30 @@ export default function CreateAgentDialog({
 
           <div>
             <label className="block text-xs font-bold text-nc-muted mb-1.5 font-mono tracking-wider">RUNTIME</label>
-            {machineRuntimes.length > 0 ? (
+            {runtimeCatalog.length > 0 ? (
               <div className="flex gap-2 flex-wrap">
-                {machineRuntimes.map((rt) => (
-                  <ScanlineTear key={rt} config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+                {runtimeCatalog.map((rt) => (
+                  <ScanlineTear key={rt.id} config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
                     <button
                       type="button"
-                      onClick={() => setRuntime(rt)}
+                      onClick={() => setRuntime(rt.id)}
                       className={`cyber-btn px-3 py-1.5 border text-sm font-bold font-mono ${
-                        runtime === rt
+                        runtime === rt.id
                           ? 'border-nc-cyan bg-nc-cyan/10 text-nc-cyan shadow-nc-cyan'
                           : 'border-nc-border text-nc-muted hover:bg-nc-elevated'
                       }`}
+                      title={rt.version ? `${rt.displayName} (${rt.version})` : rt.displayName}
                     >
-                      {RUNTIME_LABELS[rt] || rt}
+                      {rt.displayName || rt.id}
                     </button>
                   </ScanlineTear>
                 ))}
               </div>
             ) : (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setRuntimeOpen(!runtimeOpen)}
-                  className="w-full flex items-center justify-between px-3 py-2.5 border border-nc-border bg-nc-panel text-left text-sm hover:bg-nc-elevated transition-colors"
-                >
-                  <span className="font-bold text-nc-text-bright font-mono">
-                    {RUNTIME_LABELS[runtime] || runtime || 'Select runtime...'}
-                  </span>
-                  <ChevronDown size={14} className={`text-nc-muted transition-transform ${runtimeOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {runtimeOpen && (
-                  <div className="absolute z-10 mt-1 w-full border border-nc-border bg-nc-surface shadow-nc-panel max-h-48 overflow-y-auto scrollbar-thin">
-                    {Object.entries(RUNTIME_LABELS).map(([key, label]) => (
-                      <button
-                        key={key}
-                        onClick={() => { setRuntime(key); setRuntimeOpen(false); }}
-                        className={`w-full flex items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
-                          key === runtime ? 'bg-nc-elevated' : 'hover:bg-nc-elevated/50'
-                        }`}
-                      >
-                        <span className="font-bold text-nc-text-bright font-mono">{label}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+              <div className="px-3 py-2 border border-nc-border bg-nc-panel text-xs font-mono text-nc-muted">
+                {selectedMachine
+                  ? 'This machine has no runtimes available. Install a supported CLI on the daemon host.'
+                  : 'Connect a daemon to see available runtimes.'}
               </div>
             )}
           </div>
@@ -305,26 +275,49 @@ export default function CreateAgentDialog({
             </div>
           </div>
 
-          {models.length > 0 && (
+          {runtime && (
             <div>
               <label className="block text-xs font-bold text-nc-muted mb-1.5 font-mono tracking-wider">MODEL</label>
-              <div className="flex gap-2 flex-wrap">
-                {models.map((m) => (
-                  <ScanlineTear key={m} config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+              {suggestedModels.length > 0 && (
+                <div className="flex gap-2 flex-wrap mb-2">
+                  {suggestedModels.map((m) => (
+                    <ScanlineTear key={m} config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
+                      <button
+                        type="button"
+                        onClick={() => { setModel(m); setCustomModel(false); }}
+                        className={`cyber-btn px-3 py-1.5 border text-sm font-bold font-mono ${
+                          !customModel && model === m
+                            ? 'border-nc-cyan bg-nc-cyan/10 text-nc-cyan shadow-nc-cyan'
+                            : 'border-nc-border text-nc-muted hover:bg-nc-elevated'
+                        }`}
+                      >
+                        {m}
+                      </button>
+                    </ScanlineTear>
+                  ))}
+                  <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
                     <button
                       type="button"
-                      onClick={() => setModel(m)}
+                      onClick={() => { setCustomModel(true); setModel(''); }}
                       className={`cyber-btn px-3 py-1.5 border text-sm font-bold font-mono ${
-                        model === m
+                        customModel
                           ? 'border-nc-cyan bg-nc-cyan/10 text-nc-cyan shadow-nc-cyan'
                           : 'border-nc-border text-nc-muted hover:bg-nc-elevated'
                       }`}
                     >
-                      {m}
+                      CUSTOM
                     </button>
                   </ScanlineTear>
-                ))}
-              </div>
+                </div>
+              )}
+              {(customModel || suggestedModels.length === 0) && (
+                <input
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder={suggestedModels.length === 0 ? 'Optional model identifier' : 'Custom model identifier'}
+                  className="w-full px-3 py-2 border border-nc-border bg-nc-panel text-sm text-nc-text-bright placeholder:text-nc-muted font-mono focus:outline-none focus:border-nc-cyan focus:shadow-nc-cyan transition-all"
+                />
+              )}
             </div>
           )}
 
