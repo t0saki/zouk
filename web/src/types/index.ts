@@ -120,12 +120,21 @@ export interface AgentConfig {
   reasoningEffort?: string;
 }
 
+export interface RuntimeMeta {
+  id: string;
+  displayName: string;
+  models: string[];
+  defaultModel?: string;
+  version?: string;
+}
+
 export interface ServerMachine {
   id: string;
   hostname: string;
   alias?: string;
   os: string;
   runtimes?: string[];
+  runtimeCatalog?: RuntimeMeta[];
   agentIds?: string[];
 }
 
