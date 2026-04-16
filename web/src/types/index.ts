@@ -151,7 +151,8 @@ export interface InitPayload {
 
 export interface WorkspaceFile {
   name: string;
-  type: 'file' | 'directory';
+  path?: string;
+  isDirectory: boolean;
   size?: number;
   modifiedAt?: string;
 }
