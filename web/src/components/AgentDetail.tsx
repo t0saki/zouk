@@ -45,10 +45,17 @@ function InstructionsTab({
   agent: ServerAgent;
   onUpdate: (updates: Partial<ServerAgent>) => void;
 }) {
-  const [instructions, setInstructions] = useState(agent.instructions || '');
-  const isDirty = instructions !== (agent.instructions || '');
+  // Instructions and skills only round-trip through the saved config — the
+  // live ServerAgent payload doesn't carry them. Reading from `agent.X` would
+  // wipe the user's saved value every time this tab remounts.
+  const { configs } = useApp();
+  const savedConfig = configs.find((c) => c.id === agent.id);
+  const persistedInstructions = savedConfig?.instructions ?? agent.instructions ?? '';
+  const persistedSkills = savedConfig?.skills ?? agent.skills ?? [];
+  const [instructions, setInstructions] = useState(persistedInstructions);
+  const isDirty = instructions !== persistedInstructions;
 
-  const assignedSkills = agent.skills || [];
+  const assignedSkills = persistedSkills;
   const assignedIds = new Set(assignedSkills.map((s) => s.id));
   const availableSkills = AVAILABLE_SKILLS.filter((s) => !assignedIds.has(s.id));
   const [showPicker, setShowPicker] = useState(false);
@@ -338,24 +345,29 @@ function SettingsTab({
   onDelete: () => void;
 }) {
   const { isGuest, configs } = useApp();
-  // autoStart lives on the saved config, not on the live agent record — pull
-  // it from configs so the toggle reflects what the server will do on daemon
-  // restart, not the transient agent runtime state.
+  // description / visibility / maxConcurrentTasks / autoStart only round-trip
+  // through the saved config — the live ServerAgent payload doesn't carry
+  // them. Reading from `agent.X` would wipe the user's saved value every time
+  // this tab remounts (and keep `isDirty` permanently true after SAVE).
   const savedConfig = configs.find((c) => c.id === agent.id);
-  const savedAutoStart = savedConfig?.autoStart ?? true;
+  const persistedDisplayName = savedConfig?.displayName ?? agent.displayName ?? agent.name;
+  const persistedDescription = savedConfig?.description ?? agent.description ?? '';
+  const persistedVisibility = savedConfig?.visibility ?? agent.visibility ?? 'workspace';
+  const persistedMaxConcurrent = savedConfig?.maxConcurrentTasks ?? agent.maxConcurrentTasks ?? 6;
+  const persistedAutoStart = savedConfig?.autoStart ?? true;
 
-  const [displayName, setDisplayName] = useState(agent.displayName || agent.name);
-  const [description, setDescription] = useState(agent.description || '');
-  const [visibility, setVisibility] = useState<'workspace' | 'private'>(agent.visibility || 'workspace');
-  const [maxConcurrent, setMaxConcurrent] = useState(agent.maxConcurrentTasks ?? 6);
-  const [autoStart, setAutoStart] = useState<boolean>(savedAutoStart);
+  const [displayName, setDisplayName] = useState(persistedDisplayName);
+  const [description, setDescription] = useState(persistedDescription);
+  const [visibility, setVisibility] = useState<'workspace' | 'private'>(persistedVisibility);
+  const [maxConcurrent, setMaxConcurrent] = useState(persistedMaxConcurrent);
+  const [autoStart, setAutoStart] = useState<boolean>(persistedAutoStart);
 
   const isDirty =
-    displayName !== (agent.displayName || agent.name) ||
-    description !== (agent.description || '') ||
-    visibility !== (agent.visibility || 'workspace') ||
-    maxConcurrent !== (agent.maxConcurrentTasks ?? 6) ||
-    autoStart !== savedAutoStart;
+    displayName !== persistedDisplayName ||
+    description !== persistedDescription ||
+    visibility !== persistedVisibility ||
+    maxConcurrent !== persistedMaxConcurrent ||
+    autoStart !== persistedAutoStart;
 
   return (
     <div className="flex-1 flex flex-col p-5 overflow-y-auto scrollbar-thin">
@@ -367,6 +379,13 @@ function SettingsTab({
             onChange={(e) => setDisplayName(e.target.value)}
             className="w-full px-3 py-2 border border-nc-border bg-nc-panel text-sm text-nc-text-bright font-mono focus:outline-none focus:border-nc-cyan focus:shadow-nc-cyan transition-all"
           />
+          {agent.status === 'active' && displayName !== persistedDisplayName && (
+            <p className="text-2xs text-nc-yellow mt-1 font-mono">
+              Renaming a running agent updates the UI immediately, but the agent
+              process keeps its old self-name (used for @mentions) until you
+              stop and restart it.
+            </p>
+          )}
         </div>
 
         <div>

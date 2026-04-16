@@ -120,6 +120,16 @@ export interface AgentConfig {
   envVars?: Record<string, string>;
   reasoningEffort?: string;
   autoStart?: boolean;
+  // UI-edited fields that the server only persists into the config (they're
+  // not echoed back on the live ServerAgent payload). Keeping them typed here
+  // lets SettingsTab/InstructionsTab read the persisted value back instead of
+  // falling through to undefined every time the component remounts.
+  systemPrompt?: string;
+  instructions?: string;
+  visibility?: 'workspace' | 'private';
+  maxConcurrentTasks?: number;
+  workDir?: string;
+  skills?: AgentSkill[];
 }
 
 export interface ServerMachine {
