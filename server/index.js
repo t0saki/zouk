@@ -74,7 +74,7 @@ function agentPayload(agentId) {
   return {
     ...base,
     name: cfg.name || a.name,
-    displayName: cfg.displayName || a.displayName,
+    displayName: cfg.displayName || cfg.name || a.displayName,
     runtime: cfg.runtime || a.runtime,
     model: cfg.model || a.model,
     workDir: cfg.workDir || a.workDir,
@@ -1076,13 +1076,9 @@ function startAgentOnDaemon(id, config) {
   }));
 
   daemonSockets.set(id, targetWs);
-  broadcastToWeb({ type: "agent_started", agent: agentPayload(id) });
-  console.log(`[api] Starting agent ${id} (runtime: ${runtime}) on daemon`);
 
-  // Upsert into agentConfigs so this agent survives a daemon restart. New
-  // agents default to autoStart:true (restart when the daemon reconnects);
-  // existing configs keep whatever autoStart the user set via the UI toggle.
-  // Use original config.* values — NOT store.agents[id].* which has fallbacks.
+  // Upsert into agentConfigs BEFORE broadcasting so that agentPayload()
+  // can overlay the authoritative config onto the runtime entry.
   const existingIdx = agentConfigs.findIndex((c) => c.id === id);
   if (existingIdx < 0) {
     const persisted = {
@@ -1100,8 +1096,11 @@ function startAgentOnDaemon(id, config) {
     agentConfigs.push(persisted);
     saveAgentConfigs(agentConfigs);
     db.saveAgentConfig(persisted);
-    broadcastToWeb({ type: "config_updated", configs: agentConfigs });
   }
+
+  broadcastToWeb({ type: "agent_started", agent: agentPayload(id) });
+  broadcastToWeb({ type: "config_updated", configs: agentConfigs });
+  console.log(`[api] Starting agent ${id} (runtime: ${runtime}) on daemon`);
   return { agentId: id, status: "starting" };
 }
 
