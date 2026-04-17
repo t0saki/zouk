@@ -443,10 +443,10 @@ app.get("/internal/agent/:agentId/server", (req, res) => {
       description: ch.description || "",
       joined: true,
     }));
-  const agents = Object.entries(store.agents).map(([id, a]) => ({
-    name: a.name || id,
-    status: a.status || "inactive",
-  }));
+  const agents = Object.keys(store.agents).map((id) => {
+    const p = agentPayload(id);
+    return { name: p?.name || id, status: p?.status || "inactive" };
+  });
   res.json({ channels, agents, humans: store.humans });
 });
 
@@ -790,14 +790,7 @@ app.post("/api/channels", requireAuth, (req, res) => {
 app.get("/api/machines", (req, res) => {
   const machineList = Array.from(machines.values()).map((m) => ({
     ...m,
-    agents: m.agentIds.map((id) => ({ id, ...(store.agents[id] || {}) })).filter((a) => a.name).map((a) => ({
-      id: a.id,
-      name: a.name,
-      displayName: a.displayName,
-      runtime: a.runtime,
-      model: a.model,
-      status: a.status,
-    })),
+    agents: m.agentIds.map((id) => agentPayload(id)).filter(Boolean),
   }));
   res.json({ machines: machineList });
 });
@@ -846,15 +839,7 @@ app.get("/api/machines/:id/runtimes/:runtime/models", (req, res) => {
 
 // Get agents (running + configs)
 app.get("/api/agents", (req, res) => {
-  const agents = Object.entries(store.agents).map(([id, a]) => ({
-    id,
-    name: a.name,
-    displayName: a.displayName,
-    runtime: a.runtime,
-    model: a.model,
-    status: a.status,
-    machineId: a.machineId,
-  }));
+  const agents = Object.keys(store.agents).map((id) => agentPayload(id));
   res.json({ agents, configs: agentConfigs });
 });
 
@@ -1057,20 +1042,21 @@ function startAgentOnDaemon(id, config) {
     machineId: targetWs._machineId,
   });
 
-  // Send agent:start to daemon
+  // Send agent:start to daemon — read from config (source of truth),
+  // not store.agents (which may have fallback values).
   targetWs.send(JSON.stringify({
     type: "agent:start",
     agentId: id,
     launchId: uuidv4(),
     config: {
       runtime,
-      model: store.agents[id].model,
-      workDir: store.agents[id].workDir,
+      model: config.model,
+      workDir: config.workDir || store.agents[id].workDir,
       systemPrompt: config.systemPrompt || config.description || "",
       serverUrl: PUBLIC_URL,
       authToken: "test",
-      name: store.agents[id].name,
-      displayName: store.agents[id].displayName,
+      name: config.name || id,
+      displayName: config.displayName || config.name || id,
       description: config.description || "",
     },
   }));
