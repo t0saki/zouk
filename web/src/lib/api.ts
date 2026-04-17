@@ -45,12 +45,15 @@ export function normalizeMessage(m: any): MessageRecord {
 
 export async function fetchMessages(channelName: string, isDm = false, limit = 200, senderName?: string): Promise<MessageRecord[]> {
   const target = isDm ? `dm:@${channelName}` : `#${channelName}`;
-  // Channel goes in the URL *path* (not query string) so that enterprise
-  // proxies / extensions that strip query params during 307 redirects
-  // can't lose it.
-  let url = `${getBaseUrl()}/api/messages/c/${encodeURIComponent(target)}?limit=${limit}`;
-  if (senderName) url += `&sender=${encodeURIComponent(senderName)}`;
-  const res = await fetch(url, { cache: 'no-store' });
+  // Pass channel/limit/sender as request headers instead of query params or
+  // path segments — the Cloudflare proxy rewrites URLs during its 307 redirect
+  // chain but leaves headers untouched.
+  const headers: Record<string, string> = {
+    'X-Channel': target,
+    'X-Limit': String(limit),
+  };
+  if (senderName) headers['X-Sender'] = senderName;
+  const res = await fetch(`${getBaseUrl()}/api/messages`, { cache: 'no-store', headers });
   if (!res.ok) throw new Error(`Failed to fetch messages: ${res.status}`);
   const data = await res.json();
   return (data.messages || []).map(normalizeMessage);
@@ -60,8 +63,10 @@ export async function fetchThreadMessages(channelName: string, messageId: string
   const shortId = messageId.slice(0, 8);
   const parentTarget = isDm ? `dm:@${channelName}` : `#${channelName}`;
   const threadTarget = `${parentTarget}:${shortId}`;
-  const url = `${getBaseUrl()}/api/messages/c/${encodeURIComponent(threadTarget)}?limit=${limit}`;
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetch(`${getBaseUrl()}/api/messages`, {
+    cache: 'no-store',
+    headers: { 'X-Channel': threadTarget, 'X-Limit': String(limit) },
+  });
   if (!res.ok) throw new Error(`Failed to fetch thread messages: ${res.status}`);
   const data = await res.json();
   return (data.messages || []).map(normalizeMessage);
