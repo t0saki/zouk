@@ -41,6 +41,11 @@ function saveAgentConfigs(configs) {
 
 const agentConfigs = loadAgentConfigs(); // persistent agent configurations
 
+// Track explicitly deleted agent IDs so we can reject them when the daemon
+// re-reports them on reconnect. We can't just check "no config" — configs may
+// not have loaded yet, or the agent may be daemon-side idle-restarted.
+const deletedAgentIds = new Set();
+
 // ─── Machine API key persistence ─────────────────────────────────
 
 function loadMachineKeys() {
@@ -915,6 +920,7 @@ app.delete("/api/agents/:id", requireAuth, (req, res) => {
     delete store.agents[id];
     daemonSockets.delete(id);
   }
+  deletedAgentIds.add(id);
   broadcastToWeb({ type: "agent_status", agentId: id, status: "deleted" });
   broadcastToWeb({ type: "config_updated", configs: agentConfigs });
   res.json({ success: true });
@@ -1230,15 +1236,15 @@ function handleDaemonMessage(ws, msg, connectedAgents) {
       // Register any running agents
       if (msg.runningAgents) {
         for (const agentId of msg.runningAgents) {
-          const cfg = agentConfigs.find((c) => c.id === agentId);
-          // If the config was deleted while the daemon was disconnected,
-          // this agent is orphaned — tell the daemon to stop it instead of
-          // resurrecting it with fallback metadata.
-          if (!cfg && !store.agents[agentId]) {
-            console.log(`[daemon] Orphan agent ${agentId} — no config, sending stop`);
+          // Only reject agents that were explicitly deleted via the API.
+          // Missing config alone is NOT sufficient — configs may still be
+          // loading from DB, or the agent may be daemon-side idle-restarted.
+          if (deletedAgentIds.has(agentId)) {
+            console.log(`[daemon] Deleted agent ${agentId} re-reported — sending stop`);
             ws.send(JSON.stringify({ type: "agent:stop", agentId }));
             continue;
           }
+          const cfg = agentConfigs.find((c) => c.id === agentId);
           connectedAgents.add(agentId);
           daemonSockets.set(agentId, ws);
           const isNew = !store.agents[agentId];
@@ -1264,15 +1270,14 @@ function handleDaemonMessage(ws, msg, connectedAgents) {
     }
     case "agent:status": {
       const { agentId, status } = msg;
+      if (deletedAgentIds.has(agentId)) {
+        console.log(`[daemon] Deleted agent ${agentId} reported status=${status} — sending stop`);
+        ws.send(JSON.stringify({ type: "agent:stop", agentId }));
+        break;
+      }
       const isNew = !store.agents[agentId];
       if (isNew) {
         const cfg = agentConfigs.find((c) => c.id === agentId);
-        // Orphan: config deleted while daemon was away — stop it.
-        if (!cfg) {
-          console.log(`[daemon] Orphan agent ${agentId} reported status=${status} — no config, sending stop`);
-          ws.send(JSON.stringify({ type: "agent:stop", agentId }));
-          break;
-        }
         store.agents[agentId] = {
           name: cfg.name || agentId,
           displayName: cfg.displayName || cfg.name || agentId,
@@ -1718,18 +1723,7 @@ async function initFromDB() {
 function reconcileAgentsWithConfigs() {
   for (const agentId of Object.keys(store.agents)) {
     const cfg = agentConfigs.find((c) => c.id === agentId);
-    if (!cfg) {
-      // Agent has no config — it was deleted. Remove the orphan entry and
-      // tell the daemon to stop the process if it's still tracked.
-      const ws = daemonSockets.get(agentId);
-      if (ws && ws.readyState === 1) {
-        ws.send(JSON.stringify({ type: "agent:stop", agentId }));
-      }
-      delete store.agents[agentId];
-      daemonSockets.delete(agentId);
-      broadcastToWeb({ type: "agent_status", agentId, status: "deleted" });
-      continue;
-    }
+    if (!cfg) continue;
     const a = store.agents[agentId];
     const before = { name: a.name, displayName: a.displayName, runtime: a.runtime, model: a.model };
     if (cfg.name) a.name = cfg.name;
