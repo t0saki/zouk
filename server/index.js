@@ -715,22 +715,19 @@ app.post("/api/messages", requireAuth, (req, res) => {
 });
 
 // Get messages for a channel
-// Two routes: path-based (proxy-safe) and query-based (backward compat).
-// Some enterprise proxies / browser extensions (SiteMinder, etc.) strip query
-// parameters during 307 redirect chains, so the primary client route puts the
-// channel target in the URL path where it survives rewrites.
-function handleGetMessages(req, res) {
-  const channel = req.params.channelTarget
-    ? decodeURIComponent(req.params.channelTarget)
-    : (req.query.channel || "#all");
-  const { limit = 100, sender } = req.query;
+// The Cloudflare proxy rewrites both query strings AND path segments during
+// its 307 redirect chain, so the primary web client passes the channel target
+// in request headers (X-Channel, X-Limit, X-Sender) which survive untouched.
+// Query-string fallback kept for backward compat (curl, daemon internal API).
+app.get("/api/messages", (req, res) => {
+  const channel = req.headers["x-channel"] || req.query.channel || "#all";
+  const limit = req.headers["x-limit"] || req.query.limit || 100;
+  const sender = req.headers["x-sender"] || req.query.sender || null;
   const msgs = store.messages
-    .filter((m) => matchesTarget(m, channel, sender || null))
+    .filter((m) => matchesTarget(m, channel, sender))
     .slice(-parseInt(limit));
-  res.json({ messages: msgs.map((m) => formatMessageForClient(m, sender || null)) });
-}
-app.get("/api/messages/c/:channelTarget", handleGetMessages);
-app.get("/api/messages", handleGetMessages);
+  res.json({ messages: msgs.map((m) => formatMessageForClient(m, sender)) });
+});
 
 // Get channels
 app.get("/api/channels", (req, res) => {
