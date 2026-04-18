@@ -48,6 +48,7 @@ export default function SettingsModal() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const presetInputRef = useRef<HTMLInputElement>(null);
   const [presetError, setPresetError] = useState<string | null>(null);
+  const [presetDragOver, setPresetDragOver] = useState(false);
   const [prefs, setPrefs] = useState<Preferences>(loadPrefs);
 
   useEffect(() => {
@@ -82,18 +83,46 @@ export default function SettingsModal() {
     e.target.value = '';
   }, [updateProfile, displayName, currentUser]);
 
-  const handlePresetUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    setPresetError(null);
-    try {
-      const dataUrl = await resizeAndEncode(file, 128);
-      await addProfilePreset(dataUrl);
-    } catch (err) {
-      setPresetError(err instanceof Error ? err.message : 'Upload failed');
+  const processPresetFiles = useCallback(async (fileList: FileList | File[]) => {
+    const images = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    if (images.length === 0) return;
+
+    const remaining = PROFILE_PRESET_MAX - profilePresets.length;
+    if (remaining <= 0) {
+      setPresetError(`Preset pool is full (${PROFILE_PRESET_MAX} max)`);
+      return;
     }
-  }, [addProfilePreset]);
+    const accepted = images.slice(0, remaining);
+    const dropped = images.length - accepted.length;
+
+    setPresetError(null);
+    let failures = 0;
+    for (const file of accepted) {
+      try {
+        const dataUrl = await resizeAndEncode(file, 128);
+        const res = await addProfilePreset(dataUrl, { silent: accepted.length > 1 });
+        if (!res.ok) failures++;
+      } catch {
+        failures++;
+      }
+    }
+    const parts: string[] = [];
+    if (failures) parts.push(`${failures} failed`);
+    if (dropped) parts.push(`${dropped} skipped — pool limit`);
+    if (parts.length) setPresetError(parts.join('; '));
+  }, [addProfilePreset, profilePresets.length]);
+
+  const handlePresetUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    e.target.value = '';
+    if (files && files.length) await processPresetFiles(files);
+  }, [processPresetFiles]);
+
+  const handlePresetDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setPresetDragOver(false);
+    if (e.dataTransfer.files?.length) await processPresetFiles(e.dataTransfer.files);
+  }, [processPresetFiles]);
 
   const handleGlitchComplete = useCallback(() => {
     setGlitchActive(false);
@@ -286,7 +315,12 @@ export default function SettingsModal() {
                     <p className="text-2xs font-mono text-nc-red mb-2">{presetError}</p>
                   )}
 
-                  <div className="grid grid-cols-6 gap-2">
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); if (!presetDragOver) setPresetDragOver(true); }}
+                    onDragLeave={(e) => { if (e.currentTarget === e.target) setPresetDragOver(false); }}
+                    onDrop={handlePresetDrop}
+                    className={`relative grid grid-cols-6 gap-2 p-1 transition-colors ${presetDragOver ? 'bg-nc-cyan/5 outline outline-2 outline-dashed outline-nc-cyan/50' : ''}`}
+                  >
                     {profilePresets.map(p => (
                       <div key={p.id} className="relative group aspect-square border border-nc-border bg-nc-panel overflow-hidden">
                         <img src={p.image} alt="" className="w-full h-full object-cover" />
@@ -305,16 +339,25 @@ export default function SettingsModal() {
                         type="button"
                         onClick={() => presetInputRef.current?.click()}
                         className="aspect-square border border-dashed border-nc-border hover:border-nc-cyan hover:text-nc-cyan text-nc-muted flex items-center justify-center transition-colors"
-                        title="Upload avatar preset"
+                        title="Upload avatar presets"
                       >
                         <Plus size={18} />
                       </button>
                     )}
+                    {presetDragOver && (
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs font-mono text-nc-cyan bg-nc-deep/60">
+                        DROP_TO_UPLOAD
+                      </div>
+                    )}
                   </div>
+                  <p className="text-2xs font-mono text-nc-muted mt-1">
+                    Drop images here or click + to upload. Multiple files supported.
+                  </p>
                   <input
                     ref={presetInputRef}
                     type="file"
                     accept="image/*"
+                    multiple
                     className="hidden"
                     onChange={handlePresetUpload}
                   />

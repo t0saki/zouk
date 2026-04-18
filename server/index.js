@@ -424,9 +424,6 @@ function broadcastToWeb(event) {
   }
 }
 
-// Profile preset pool. Avatar assignment for brand-new agents flows through
-// pickProfilePresetForAgent() in startAgentOnDaemon; the CRUD endpoints below
-// let users manage the pool from the settings popup.
 const profilePresets = createProfilePresetsStore({
   filePath: AGENT_PROFILE_PRESETS_FILE,
   db,

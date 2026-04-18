@@ -1,5 +1,3 @@
-// Shared avatar encode helper. Crops to a center square, scales to
-// `size`, then retries quality levels to keep the base64 payload small.
 export function resizeAndEncode(file: File, size = 128, maxBytes = 14000): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();

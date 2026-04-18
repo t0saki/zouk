@@ -475,14 +475,16 @@ export function useAppStore() {
     }
   }, [addToast]);
 
-  const addProfilePresetAction = useCallback(async (image: string) => {
+  const addProfilePresetAction = useCallback(async (image: string, opts?: { silent?: boolean }) => {
     try {
       const { preset } = await api.createProfilePreset(image);
       setProfilePresets(prev => (prev.find(p => p.id === preset.id) ? prev : [...prev, preset]));
-      addToast('Avatar preset added', 'success');
+      if (!opts?.silent) addToast('Avatar preset added', 'success');
+      return { ok: true as const };
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Failed to add preset';
-      addToast(msg, 'error');
+      if (!opts?.silent) addToast(msg, 'error');
+      return { ok: false as const, error: msg };
     }
   }, [addToast]);
 

@@ -1,20 +1,10 @@
-/**
- * Agent profile presets — a standalone pool of reusable avatars.
- *
- * When a new agent is created the server hashes its id into the preset
- * pool and assigns the matching image. If that picture is already in use,
- * we reshard to the next slot for up to three rounds before falling back
- * to index 0. Presets are persisted to Supabase when available and to a
- * JSON file otherwise — mirroring how agent configs and machine keys work.
- */
-
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
 const MAX_PRESETS = 30;
-const MAX_IMAGE_BYTES = 32 * 1024; // 32KB ceiling on the base64 blob
+const MAX_IMAGE_BYTES = 32 * 1024;
 const SHARD_ROUNDS = 3;
 
 function hashToIndex(key, size) {
@@ -76,14 +66,14 @@ function createStore({ filePath, db, broadcast, onChange }) {
   async function hydrateFromDb() {
     if (!db?.loadProfilePresets) return;
     const dbPresets = await db.loadProfilePresets();
-    if (dbPresets === null) return; // DB disabled
+    if (dbPresets === null) return;
     if (dbPresets.length > 0) {
       presets = dbPresets;
       saveToFile();
       console.log(`[presets] Loaded ${presets.length} preset(s) from DB`);
     } else if (presets.length > 0) {
       for (const p of presets) {
-        try { await db.saveProfilePreset(p); } catch (e) { /* best effort */ void e; }
+        try { await db.saveProfilePreset(p); } catch (e) { void e; }
       }
       console.log(`[presets] Seeded ${presets.length} preset(s) from file`);
     }

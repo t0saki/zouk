@@ -311,9 +311,8 @@ export default function MessageItem({ message, isGrouped = false }: { message: M
           </div>
         ) : (
           <div
-            className="w-8 h-8 sm:w-9 sm:h-9 border font-display font-bold text-xs flex items-center justify-center select-none flex-shrink-0 mt-0.5 overflow-hidden"
+            className="w-8 h-8 sm:w-9 sm:h-9 font-display font-bold text-xs flex items-center justify-center select-none flex-shrink-0 mt-0.5 overflow-hidden"
             style={{
-              borderColor: `${color}55`,
               backgroundColor: `${color}12`,
               color,
               boxShadow: isAgent ? `0 0 10px ${color}18` : undefined,
