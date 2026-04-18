@@ -300,6 +300,41 @@ async function loadMachineKeys() {
   }));
 }
 
+// ─── Agent profile presets ───────────────────────────────────────
+
+async function saveProfilePreset(preset) {
+  if (!db) return;
+  const { error } = await db.from('agent_profile_presets').upsert({
+    id: preset.id,
+    image: preset.image,
+    created_at: preset.createdAt,
+  }, { onConflict: 'id' });
+  if (error) console.error('[db] saveProfilePreset error:', error.message);
+}
+
+async function deleteProfilePreset(id) {
+  if (!db) return;
+  const { error } = await db.from('agent_profile_presets').delete().eq('id', id);
+  if (error) console.error('[db] deleteProfilePreset error:', error.message);
+}
+
+async function loadProfilePresets() {
+  if (!db) return null;
+  const { data, error } = await db
+    .from('agent_profile_presets')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) {
+    console.error('[db] loadProfilePresets error:', error.message);
+    return null;
+  }
+  return (data || []).map(row => ({
+    id: row.id,
+    image: row.image,
+    createdAt: row.created_at,
+  }));
+}
+
 // ─── Auth sessions ────────────────────────────────────────────────
 
 async function saveSession(token, user) {
@@ -349,6 +384,9 @@ module.exports = {
   loadAgentConfigs,
   saveMachineKey,
   loadMachineKeys,
+  saveProfilePreset,
+  deleteProfilePreset,
+  loadProfilePresets,
   saveSession,
   deleteSession,
   loadSessions,

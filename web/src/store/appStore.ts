@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react
 import type {
   MessageRecord, ServerChannel, ServerAgent, ServerHuman,
   AgentConfig, ServerMachine, ViewMode, RightPanel, Theme, Toast,
-  WorkspaceFile,
+  WorkspaceFile, AgentProfilePreset,
 } from '../types';
 import { SlockWebSocket } from '../lib/ws';
 import type { WsEvent } from '../lib/ws';
@@ -75,6 +75,7 @@ export function useAppStore() {
   // Tree cache: agentId -> dirPath -> files (for recursive tree rendering)
   const [wsTreeCache, setWsTreeCache] = useState<Record<string, Record<string, WorkspaceFile[]>>>({});
   const [workspaceFileContent, setWorkspaceFileContent] = useState<{ agentId: string; path: string; content: string } | null>(null);
+  const [profilePresets, setProfilePresets] = useState<AgentProfilePreset[]>([]);
   const [authUser, setAuthUser] = useState<AuthUser | null>(() => getStoredAuth()?.user || null);
   const [authToken, setAuthToken] = useState<string | null>(() => getStoredAuth()?.token || null);
   const [isLoggedIn, setIsLoggedIn] = useState(() => !!getStoredAuth());
@@ -112,12 +113,13 @@ export function useAppStore() {
         setWsConnected(false);
         break;
       case 'init': {
-        const e = event as { channels: ServerChannel[]; agents: ServerAgent[]; humans: ServerHuman[]; configs: AgentConfig[]; machines: ServerMachine[] };
+        const e = event as { channels: ServerChannel[]; agents: ServerAgent[]; humans: ServerHuman[]; configs: AgentConfig[]; machines: ServerMachine[]; profilePresets?: AgentProfilePreset[] };
         setChannels(e.channels || []);
         setAgents(e.agents || []);
         setHumans(e.humans || []);
         setConfigs(e.configs || []);
         setMachines(e.machines || []);
+        setProfilePresets(e.profilePresets || []);
         if (e.channels?.length && !e.channels.find(c => c.name === activeChannelRef.current)) {
           setActiveChannelName(e.channels[0].name);
         }
@@ -270,6 +272,11 @@ export function useAppStore() {
         setHumans(e.humans || []);
         break;
       }
+      case 'agent_profile_presets_updated': {
+        const e = event as { presets: AgentProfilePreset[] };
+        setProfilePresets(e.presets || []);
+        break;
+      }
       case 'machine:connected': {
         const e = event as { machine: ServerMachine };
         setMachines(prev => {
@@ -289,12 +296,24 @@ export function useAppStore() {
         break;
       }
       case 'workspace:file_tree': {
-        const e = event as { agentId: string; dirPath: string; files: WorkspaceFile[] };
+        const e = event as { agentId: string; dirPath: string; workDir?: string; files: WorkspaceFile[] };
         setWorkspaceFiles(prev => ({ ...prev, [e.agentId]: { dirPath: e.dirPath, files: e.files } }));
         setWsTreeCache(prev => ({
           ...prev,
           [e.agentId]: { ...(prev[e.agentId] || {}), [e.dirPath || '']: e.files },
         }));
+        if (e.workDir) {
+          setAgents(prev => prev.map(a => (
+            a.id === e.agentId && a.workDir !== e.workDir
+              ? { ...a, workDir: e.workDir }
+              : a
+          )));
+          setConfigs(prev => prev.map(c => (
+            c.id === e.agentId && c.workDir !== e.workDir
+              ? { ...c, workDir: e.workDir }
+              : c
+          )));
+        }
         break;
       }
       case 'workspace:file_content': {
@@ -456,6 +475,26 @@ export function useAppStore() {
     }
   }, [addToast]);
 
+  const addProfilePresetAction = useCallback(async (image: string) => {
+    try {
+      const { preset } = await api.createProfilePreset(image);
+      setProfilePresets(prev => (prev.find(p => p.id === preset.id) ? prev : [...prev, preset]));
+      addToast('Avatar preset added', 'success');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Failed to add preset';
+      addToast(msg, 'error');
+    }
+  }, [addToast]);
+
+  const removeProfilePresetAction = useCallback(async (id: string) => {
+    try {
+      await api.deleteProfilePreset(id);
+      setProfilePresets(prev => prev.filter(p => p.id !== id));
+    } catch {
+      addToast('Failed to remove preset', 'error');
+    }
+  }, [addToast]);
+
   const saveAgentConfigAction = useCallback(async (config: AgentConfig) => {
     try {
       await api.saveAgentConfig(config);
@@ -475,17 +514,49 @@ export function useAppStore() {
   }, [addToast]);
 
   const updateCurrentUser = useCallback((name: string, picture?: string) => {
-    localStorage.setItem(CURRENT_USER_KEY, name);
-    setCurrentUser(name);
-    // Persist to server if logged in
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    const previousUser = currentUserRef.current;
+    const previousAuthUser = authUser;
+
+    localStorage.setItem(CURRENT_USER_KEY, trimmed);
+    setCurrentUser(trimmed);
+
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (token) {
-      api.updateUserProfile(name, picture).then(({ user }) => {
-        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-        setAuthUser(user);
-      }).catch(() => {});
+    if (!token) return;
+
+    const optimisticUser = previousAuthUser
+      ? {
+          ...previousAuthUser,
+          name: trimmed,
+          picture: picture !== undefined ? picture : previousAuthUser.picture,
+        }
+      : null;
+
+    if (optimisticUser) {
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(optimisticUser));
+      setAuthUser(optimisticUser);
     }
-  }, []);
+
+    api.updateUserProfile(trimmed, picture).then(({ user }) => {
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+      localStorage.setItem(CURRENT_USER_KEY, user.name);
+      setAuthUser(user);
+      setCurrentUser(user.name);
+    }).catch(() => {
+      localStorage.setItem(CURRENT_USER_KEY, previousUser);
+      setCurrentUser(previousUser);
+      if (previousAuthUser) {
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(previousAuthUser));
+        setAuthUser(previousAuthUser);
+      } else {
+        localStorage.removeItem(AUTH_USER_KEY);
+        setAuthUser(null);
+      }
+      addToast('Failed to update profile', 'error');
+    });
+  }, [authUser, addToast]);
 
   const loginWithGoogle = useCallback(async (credential: string) => {
     const { token, user } = await api.googleLogin(credential);
@@ -566,6 +637,9 @@ export function useAppStore() {
     wsSend,
     workspaceFiles, wsTreeCache, workspaceFileContent,
     requestWorkspaceFiles, requestFileContent,
+    profilePresets,
+    addProfilePreset: addProfilePresetAction,
+    removeProfilePreset: removeProfilePresetAction,
     authUser, isLoggedIn, hasGoogleAuth, setHasGoogleAuth,
     isGuest: isLoggedIn && !authUser,
     loginWithGoogle, loginAsGuest, logout: logoutAction,
