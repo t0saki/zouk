@@ -11,6 +11,12 @@ const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const db = require("./db");
 
+function gravatarUrl(email) {
+  if (!email) return null;
+  const hash = crypto.createHash("md5").update(email.trim().toLowerCase()).digest("hex");
+  return `https://www.gravatar.com/avatar/${hash}?s=128&d=identicon`;
+}
+
 const PORT = process.env.PORT || 7777;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
@@ -1572,17 +1578,23 @@ app.post("/api/auth/google", async (req, res) => {
     const sessionToken = crypto.randomBytes(32).toString("hex");
     // Use email prefix as default display name (e.g. "zaynjarvis" from "zaynjarvis@gmail.com")
     const emailPrefix = payload.email.split("@")[0];
+    const grav = gravatarUrl(payload.email);
     const user = {
       name: emailPrefix,
       email: payload.email,
       picture: payload.picture || null,
+      gravatarUrl: grav,
     };
     authSessions.set(sessionToken, user);
     persistSession(sessionToken, user).catch(e => console.warn("[auth] persistSession error:", e.message));
 
     // Register as human if not already present
-    if (!store.humans.find((h) => h.name === user.name)) {
-      store.humans.push({ name: user.name });
+    const existingHuman = store.humans.find((h) => h.name === user.name);
+    if (existingHuman) {
+      if (user.picture) existingHuman.picture = user.picture;
+      existingHuman.gravatarUrl = grav;
+    } else {
+      store.humans.push({ name: user.name, picture: user.picture || undefined, gravatarUrl: grav });
     }
 
     res.json({ token: sessionToken, user });
@@ -1611,7 +1623,7 @@ app.post("/api/auth/logout", (req, res) => {
 
 app.put("/api/auth/profile", requireAuth, (req, res) => {
   const token = req.headers.authorization?.replace("Bearer ", "");
-  const { name } = req.body;
+  const { name, picture } = req.body;
   if (!name || typeof name !== "string" || !name.trim()) {
     return res.status(400).json({ error: "name required" });
   }
@@ -1620,11 +1632,30 @@ app.put("/api/auth/profile", requireAuth, (req, res) => {
   if (!user) return res.status(401).json({ error: "Not authenticated" });
   const oldName = user.name;
   user.name = trimmed;
+  // Update avatar if provided (base64 string, max ~50KB)
+  if (picture !== undefined) {
+    if (picture === null || picture === "") {
+      user.picture = null;
+    } else if (typeof picture === "string" && picture.length <= 70000) {
+      user.picture = picture;
+    } else {
+      return res.status(400).json({ error: "picture too large (max ~50KB base64)" });
+    }
+  }
   authSessions.set(token, user);
   // Update human record
   const human = store.humans.find((h) => h.name === oldName);
-  if (human) human.name = trimmed;
-  else if (!store.humans.find((h) => h.name === trimmed)) store.humans.push({ name: trimmed });
+  // Ensure gravatarUrl is set if user has email
+  if (!user.gravatarUrl && user.email) {
+    user.gravatarUrl = gravatarUrl(user.email);
+  }
+  if (human) {
+    human.name = trimmed;
+    human.picture = user.picture || undefined;
+    human.gravatarUrl = user.gravatarUrl || undefined;
+  } else if (!store.humans.find((h) => h.name === trimmed)) {
+    store.humans.push({ name: trimmed, picture: user.picture || undefined, gravatarUrl: user.gravatarUrl || undefined });
+  }
   db.saveSession(token, user).catch(e => console.warn("[auth] saveSession error:", e.message));
   broadcastToWeb({ type: "humans_updated", humans: store.humans });
   res.json({ user });
