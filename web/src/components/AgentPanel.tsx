@@ -1,4 +1,4 @@
-import { Bot, Plus, Server, Monitor, ChevronDown, ChevronRight, Play, Loader as Loader2, Settings } from 'lucide-react';
+import { Bot, Plus, Server, Monitor, ChevronDown, ChevronRight, Settings } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useApp } from '../store/AppContext';
 import type { ServerAgent, ServerMachine } from '../types';
@@ -20,12 +20,17 @@ function AgentListItem({
   agent,
   isSelected,
   onClick,
+  onStart,
+  isStarting,
 }: {
   agent: ServerAgent;
   isSelected: boolean;
   onClick: () => void;
+  onStart?: () => void;
+  isStarting?: boolean;
 }) {
   const activity = agent.activity || 'offline';
+  const isOffline = !agent.status || agent.status === 'inactive';
 
   return (
     <button
@@ -59,6 +64,19 @@ function AgentListItem({
           ARCHIVED
         </span>
       )}
+      {isOffline && onStart && (
+        <span
+          role="button"
+          onClick={(e) => { e.stopPropagation(); onStart(); }}
+          className="shrink-0 w-6 h-6 flex items-center justify-center border border-nc-green/50 bg-nc-green/10 text-nc-green hover:bg-nc-green/20 transition-colors"
+          title="Start agent"
+        >
+          {isStarting
+            ? <span className="w-2 h-2 border border-nc-green animate-spin border-t-transparent rounded-full" />
+            : <span className="text-2xs font-bold">▶</span>
+          }
+        </span>
+      )}
     </button>
   );
 }
@@ -79,35 +97,6 @@ function CompactMachineCard({ machine }: { machine: ServerMachine }) {
   );
 }
 
-function ConfigStartButton({
-  config,
-  isRunning,
-  isStarting,
-  onStart,
-}: {
-  config: { name: string; displayName?: string };
-  isRunning: boolean;
-  isStarting: boolean;
-  onStart: () => void;
-}) {
-  return (
-    <ScanlineTear config={{ trigger: 'hover', minInterval: 200, maxInterval: 600, minSeverity: 0.3, maxSeverity: 0.8 }}>
-      <button
-        onClick={() => !isRunning && !isStarting && onStart()}
-        disabled={isRunning || isStarting}
-        className={`cyber-btn flex items-center gap-1 px-2.5 py-1 border text-2xs font-bold font-mono ${
-          isRunning
-            ? 'border-nc-border bg-nc-elevated text-nc-muted cursor-not-allowed'
-            : 'border-nc-green bg-nc-green/10 text-nc-green hover:bg-nc-green/20 hover:shadow-nc-green'
-        }`}
-      >
-        {isStarting ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} />}
-        {config.displayName || config.name}
-      </button>
-    </ScanlineTear>
-  );
-}
-
 export default function AgentsView() {
   const { agents, configs, machines, startAgent, stopAgent, updateAgentConfig, deleteAgent, isGuest } = useApp();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -116,7 +105,6 @@ export default function AgentsView() {
   const [showMachineSetup, setShowMachineSetup] = useState(false);
   const [starting, setStarting] = useState<string | null>(null);
   const [machinesExpanded, setMachinesExpanded] = useState(true);
-  const [configsExpanded, setConfigsExpanded] = useState(true);
   const [mobileShowDetail, setMobileShowDetail] = useState(false);
 
   const filteredAgents = useMemo(() =>
@@ -126,21 +114,33 @@ export default function AgentsView() {
     [agents, showArchived]
   );
 
-  const archivedCount = useMemo(() => agents.filter((a) => a.archivedAt).length, [agents]);
-  const selected = agents.find((a) => a.id === selectedId) ?? (filteredAgents.length > 0 ? filteredAgents[0] : null);
+  // Unified list: running agents + saved configs that aren't currently running
+  const unifiedEntities = useMemo<ServerAgent[]>(() => {
+    const runningIds = new Set(agents.map(a => a.id));
+    const offlineFromConfigs = configs
+      .filter(c => !runningIds.has(c.id))
+      .map(c => ({
+        id: c.id,
+        name: c.name,
+        displayName: c.displayName,
+        description: c.description,
+        runtime: c.runtime ?? 'claude',
+        model: c.model,
+        picture: c.picture,
+        status: 'inactive' as const,
+        activity: 'offline' as const,
+      } as ServerAgent));
+    return [...filteredAgents, ...offlineFromConfigs];
+  }, [filteredAgents, configs, agents]);
 
-  const handleStartAgent = async (configName: string) => {
-    const config = configs.find(c => c.name === configName);
+  const archivedCount = useMemo(() => agents.filter((a) => a.archivedAt).length, [agents]);
+  const selected = agents.find((a) => a.id === selectedId) ?? (unifiedEntities.length > 0 ? unifiedEntities[0] : null);
+
+  const handleStartAgent = async (agentId: string) => {
+    const config = configs.find(c => c.id === agentId);
     if (!config) return;
-    setStarting(configName);
-    await startAgent({
-      id: config.id,
-      name: config.name,
-      displayName: config.displayName,
-      description: config.description,
-      runtime: config.runtime,
-      model: config.model,
-    });
+    setStarting(agentId);
+    await startAgent({ id: config.id, name: config.name, displayName: config.displayName, description: config.description, runtime: config.runtime, model: config.model });
     setStarting(null);
   };
 
@@ -264,44 +264,19 @@ export default function AgentsView() {
             )}
           </div>
 
-          {configs.length > 0 && (
-            <div>
-              <button
-                onClick={() => setConfigsExpanded(!configsExpanded)}
-                className="w-full flex items-center gap-1.5 px-4 py-2 text-left hover:bg-nc-elevated transition-colors"
-              >
-                {configsExpanded ? <ChevronDown size={10} className="text-nc-muted" /> : <ChevronRight size={10} className="text-nc-muted" />}
-                <span className="text-2xs font-bold uppercase tracking-wider text-nc-muted font-mono">
-                  Configs ({configs.length})
-                </span>
-              </button>
-              {configsExpanded && (
-                <div className="flex flex-wrap gap-1.5 px-4 pb-2">
-                  {configs.map(c => (
-                    <ConfigStartButton
-                      key={c.name}
-                      config={c}
-                      isRunning={agents.some(a => a.name === c.name && a.status === 'active')}
-                      isStarting={starting === c.name}
-                      onStart={() => handleStartAgent(c.name)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {(machines.length > 0 || configs.length > 0) && (
+          {machines.length > 0 && (
             <div className="cyber-divider mx-4 my-1" />
           )}
 
-          {filteredAgents.length > 0 ? (
-            filteredAgents.map((agent) => (
+          {unifiedEntities.length > 0 ? (
+            unifiedEntities.map((agent) => (
               <AgentListItem
                 key={agent.id}
                 agent={agent}
                 isSelected={agent.id === (selected?.id ?? '')}
                 onClick={() => handleSelectAgent(agent.id)}
+                onStart={agent.status === 'inactive' ? () => handleStartAgent(agent.id) : undefined}
+                isStarting={starting === agent.id}
               />
             ))
           ) : (
