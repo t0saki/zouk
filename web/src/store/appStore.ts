@@ -59,6 +59,7 @@ export function useAppStore() {
   const [rightPanel, setRightPanel] = useState<RightPanel>(null);
   const [agentDetailTab, setAgentDetailTab] = useState<'instructions' | 'workspace' | 'activity' | 'settings'>('instructions');
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [agentSettingsId, setAgentSettingsId] = useState<string | null>(null);
   const [activeThreadMessage, setActiveThreadMessage] = useState<MessageRecord | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024);
@@ -425,6 +426,7 @@ export function useAppStore() {
     setRightPanel(null);
     setActiveThreadMessage(null);
     setThreadMessages([]);
+    setAgentSettingsId(null);
   }, []);
 
   const createChannelAction = useCallback(async (name: string) => {
@@ -580,7 +582,18 @@ export function useAppStore() {
     setAuthUser(null);
     setIsLoggedIn(true);
     // currentUser already has a random name from getStoredUser()
-    api.registerGuestSession(currentUserRef.current).catch(() => {});
+    // In open/dev mode the server mints a real session token so guests can
+    // post messages (requireAuth won't block them).  Store it if returned.
+    api.registerGuestSession(currentUserRef.current).then(({ token, user }) => {
+      if (token) {
+        localStorage.setItem(AUTH_TOKEN_KEY, token);
+        setAuthToken(token);
+        if (user) {
+          localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+          setAuthUser(user);
+        }
+      }
+    }).catch(() => {});
   }, []);
 
   const logoutAction = useCallback(async () => {
@@ -620,6 +633,7 @@ export function useAppStore() {
     rightPanel, setRightPanel,
     agentDetailTab, setAgentDetailTab,
     selectedAgentId, setSelectedAgentId,
+    agentSettingsId, setAgentSettingsId,
     activeThreadMessage, openThread, closeRightPanel,
     settingsOpen, setSettingsOpen,
     sidebarOpen, setSidebarOpen,
