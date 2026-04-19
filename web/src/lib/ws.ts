@@ -6,6 +6,7 @@ import type {
 export type WsEventType =
   | 'init'
   | 'message' | 'new_message'
+  | 'ping'
   | 'agent_status'
   | 'agent_activity'
   | 'daemon_connected' | 'daemon_disconnected'
@@ -129,10 +130,31 @@ export type WsEventHandler = (event: WsEvent) => void;
 
 const PENDING_SEND_CAP = 100;
 
+// iOS (Safari / PWA) silently kills WebSocket TCP connections when the app is
+// backgrounded or the screen locks. Unlike a normal close, the OS never sends a
+// FIN/RST, so `onclose` never fires and `readyState` stays OPEN — the socket is
+// a zombie that receives nothing. Sources:
+//   • WebKit bug 228296: iOS 15 regression — WS closed without close event
+//   • WebKit bug 247943: Safari does not emit `onclose` when network drops
+//   • graphql-ws #290, tRPC #4078, socket.io #2924 — all hit the same bug
+//   • Apple Developer Forums TN2277: "WebSocket is a TCP socket subject to iOS
+//     multitasking rules; background apps get seconds, not minutes"
+//
+// Two-layer defence:
+//   1. `visibilitychange` — force-reconnect the moment the user returns to the
+//      tab (instant recovery; same fix as Phoenix PR #6534, socket.io, etc.)
+//   2. Inbound watchdog — if no frame arrives within INBOUND_WATCHDOG_MS, close
+//      and reconnect. Catches stale connections that die without backgrounding:
+//      NAT timeout (cellular gateways drop idle mappings in ~30s), Wi-Fi→cell
+//      handoff, Cloudflare idle timeout, screen-lock while foregrounded.
+const INBOUND_WATCHDOG_MS = 70_000; // 2× server ping interval + buffer
+
 export class SlockWebSocket {
   private ws: WebSocket | null = null;
   private handlers: WsEventHandler[] = [];
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private watchdogTimer: ReturnType<typeof setTimeout> | null = null;
+  private visibilityBound: (() => void) | null = null;
   private serverUrl: string;
   private _connected = false;
   private pendingSends: string[] = [];
@@ -158,6 +180,11 @@ export class SlockWebSocket {
   }
 
   connect(): void {
+    if (!this.visibilityBound) {
+      this.visibilityBound = () => this.handleVisibilityChange();
+      document.addEventListener('visibilitychange', this.visibilityBound);
+    }
+
     if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
       return;
     }
@@ -171,11 +198,13 @@ export class SlockWebSocket {
 
     this.ws.onopen = () => {
       this._connected = true;
+      this.resetWatchdog();
       this.flushPending();
       this.emit({ type: 'ws:connected' });
     };
 
     this.ws.onmessage = (event) => {
+      this.resetWatchdog();
       try {
         const data = JSON.parse(event.data) as WsEvent;
         this.emit(data);
@@ -186,6 +215,7 @@ export class SlockWebSocket {
 
     this.ws.onclose = () => {
       this._connected = false;
+      this.clearWatchdog();
       this.emit({ type: 'ws:disconnected' });
       this.scheduleReconnect();
     };
@@ -196,10 +226,15 @@ export class SlockWebSocket {
   }
 
   disconnect(): void {
+    if (this.visibilityBound) {
+      document.removeEventListener('visibilitychange', this.visibilityBound);
+      this.visibilityBound = null;
+    }
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+    this.clearWatchdog();
     if (this.ws) {
       this.ws.close();
       this.ws = null;
@@ -253,5 +288,48 @@ export class SlockWebSocket {
       this.reconnectTimer = null;
       this.connect();
     }, 3000);
+  }
+
+  private resetWatchdog(): void {
+    this.clearWatchdog();
+    this.watchdogTimer = setTimeout(() => {
+      this._connected = false;
+      try {
+        this.ws?.close();
+      } catch {
+        // ignore close failures; reconnect path below will recover
+      }
+    }, INBOUND_WATCHDOG_MS);
+  }
+
+  private clearWatchdog(): void {
+    if (this.watchdogTimer) {
+      clearTimeout(this.watchdogTimer);
+      this.watchdogTimer = null;
+    }
+  }
+
+  // See module-level comment for why this exists. Short version: iOS kills the
+  // TCP socket silently on background without firing onclose. This handler is
+  // the primary defence; the watchdog above is the secondary belt-and-suspenders.
+  private handleVisibilityChange(): void {
+    if (document.visibilityState !== 'visible') return;
+    // Detach all callbacks before closing so no stale handlers fire.
+    if (this.ws) {
+      this.ws.onopen = null;
+      this.ws.onmessage = null;
+      this.ws.onerror = null;
+      this.ws.onclose = null;
+      try { this.ws.close(); } catch { /* ignore */ }
+      this.ws = null;
+    }
+    this.clearWatchdog();
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    this._connected = false;
+    this.emit({ type: 'ws:disconnected' });
+    this.connect();
   }
 }
