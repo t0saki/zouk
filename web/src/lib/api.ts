@@ -208,7 +208,7 @@ export function getAttachmentUrl(attachmentId: string): string {
 }
 
 // Auth
-export async function getAuthConfig(): Promise<{ googleClientId: string | null }> {
+export async function getAuthConfig(): Promise<{ googleClientId: string | null; allowlistActive?: boolean }> {
   const res = await fetch(`${getBaseUrl()}/api/auth/config`);
   if (!res.ok) throw new Error('Failed to fetch auth config');
   return res.json();
@@ -220,7 +220,10 @@ export async function googleLogin(credential: string): Promise<{ token: string; 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ credential }),
   });
-  if (!res.ok) throw new Error('Google login failed');
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error || 'Google login failed');
+  }
   return res.json();
 }
 
@@ -239,6 +242,53 @@ export async function registerGuestSession(name: string): Promise<{ token?: stri
   });
   if (!res.ok) return {};
   return res.json();
+}
+
+export interface AllowlistEntry {
+  email: string;
+  source: 'env' | 'db';
+  addedAt?: string;
+  addedBy?: string | null;
+}
+
+export interface AllowlistResponse {
+  env: AllowlistEntry[];
+  db: AllowlistEntry[];
+  allowlistActive: boolean;
+  dbWritable: boolean;
+}
+
+export async function getAllowlist(): Promise<AllowlistResponse> {
+  const res = await fetch(`${getBaseUrl()}/api/settings/allowlist`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error(`Failed to load allowlist: ${res.status}`);
+  return res.json();
+}
+
+export async function addAllowlistEntry(email: string): Promise<AllowlistEntry> {
+  const res = await fetch(`${getBaseUrl()}/api/settings/allowlist`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error || 'Failed to add allowlist entry');
+  }
+  const data = await res.json();
+  return data.entry;
+}
+
+export async function removeAllowlistEntry(email: string): Promise<void> {
+  const res = await fetch(`${getBaseUrl()}/api/settings/allowlist/${encodeURIComponent(email)}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error || 'Failed to remove allowlist entry');
+  }
 }
 
 export async function updateUserProfile(name: string, picture?: string): Promise<{ user: AuthUser }> {
