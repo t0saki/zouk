@@ -545,7 +545,18 @@ function InlineThreadBlock({ parent, replies, replyCount }: { parent: MessageRec
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
-export default function MessageItem({ message, isGrouped = false }: { message: MessageRecord; isGrouped?: boolean }) {
+export default function MessageItem({
+  message,
+  isGrouped = false,
+  hideInlineThread = false,
+}: {
+  message: MessageRecord;
+  isGrouped?: boolean;
+  // Suppress the inline reply preview + hover thread action. Used when the
+  // caller is already rendering the full thread list next to this message
+  // (e.g. the ThreadPanel header), so we don't duplicate the entry.
+  hideInlineThread?: boolean;
+}) {
   const { humans, agents, configs, currentUser, authUser, openAgentProfile, openThread, threadedMessageIds } = useApp();
   const linkRules = useSyncExternalStore(subscribeLinkTransforms, getStoredLinkTransforms);
   const senderName = message.sender_name || 'Unknown';
@@ -584,7 +595,9 @@ export default function MessageItem({ message, isGrouped = false }: { message: M
   // Start-a-thread entry for messages that don't already surface one inline.
   // Hidden by default so 0-reply messages don't add clutter; revealed on hover
   // over the message row (and focus, for keyboard users).
-  const canStartThread = message.channel_type !== 'thread' && !hasInlineThread;
+  const canStartThread = !hideInlineThread
+    && message.channel_type !== 'thread'
+    && !hasInlineThread;
 
   return (
     <div className="group relative px-4 sm:px-6 hover:bg-nc-elevated/40 transition-colors duration-100 overflow-hidden">
@@ -740,7 +753,7 @@ export default function MessageItem({ message, isGrouped = false }: { message: M
           )}
 
           {/* Inline thread preview — only for parents that actually have replies. */}
-          {message.channel_type !== 'thread' && (message.replies?.length ?? 0) > 0 && (
+          {!hideInlineThread && message.channel_type !== 'thread' && (message.replies?.length ?? 0) > 0 && (
             <InlineThreadBlock
               parent={message}
               replies={message.replies!}

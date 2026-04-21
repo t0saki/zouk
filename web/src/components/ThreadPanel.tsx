@@ -28,7 +28,7 @@ export default function ThreadPanel() {
 
       <div className="flex-1 overflow-y-auto scrollbar-thin">
         <div className="border-b border-nc-border pb-2">
-          <MessageItem message={activeThreadMessage} />
+          <MessageItem message={activeThreadMessage} hideInlineThread />
         </div>
 
         {threadMessages.length > 0 && (
