@@ -536,7 +536,7 @@ export default function MessageItem({ message, isGrouped = false }: { message: M
             </span>
           </div>
         ) : isAgent && agentProfileId ? (
-          <div className="relative flex-shrink-0 mt-0.5">
+          <div className="relative w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 mt-0.5">
             <button
               type="button"
               onClick={() => openAgentProfile(agentProfileId)}
@@ -557,7 +557,7 @@ export default function MessageItem({ message, isGrouped = false }: { message: M
             )}
           </div>
         ) : (
-          <div className="relative flex-shrink-0 mt-0.5">
+          <div className="relative w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 mt-0.5">
             <div
               className="w-8 h-8 sm:w-9 sm:h-9 font-display font-bold text-xs flex items-center justify-center select-none overflow-hidden"
               style={{
