@@ -410,7 +410,18 @@ export default function MessageComposer({ threadTarget, placeholder }: { threadT
               <Menu size={18} />
             </button>
           )}
-          <div className={`composer-surface flex-1 min-w-0 flex items-end gap-2 border border-nc-border bg-nc-black cyber-bevel-sm ${theme === 'washington-post' ? 'focus-within:border-[#7c2430]' : 'focus-within:border-nc-cyan'}`}>
+          <div
+            className={`composer-surface flex-1 min-w-0 flex items-end gap-2 border border-nc-border bg-nc-black cyber-bevel-sm cursor-text ${theme === 'washington-post' ? 'focus-within:border-[#7c2430]' : 'focus-within:border-nc-cyan'}`}
+            onClick={(e) => {
+              // Clicking dead space next to the textarea (e.g. the "Enter to send"
+              // hint on the right) should focus the composer instead of doing
+              // nothing. Skip interactive children so their native click behaviour
+              // (image attach button, textarea itself) still wins.
+              const target = e.target as HTMLElement;
+              if (target.closest('button, a, textarea, input')) return;
+              textareaRef.current?.focus();
+            }}
+          >
           <input
             ref={fileInputRef}
             type="file"
